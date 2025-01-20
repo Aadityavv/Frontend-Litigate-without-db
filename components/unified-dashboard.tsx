@@ -204,7 +204,7 @@ export default function UnifiedDashboardComponent() {
       case "dashboard":
         return <Dashboard />;
       case "case-management":
-        return <CaseManagement />;
+        return <CaseManagement onCaseSelect={(caseId) => console.log(`Selected Case: ${caseId}`)} />;
       case "legal-research":
         return <LegalResearchTool />;
       case "communication":
