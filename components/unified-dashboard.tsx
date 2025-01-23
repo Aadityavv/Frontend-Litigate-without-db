@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Typewriter } from "react-simple-typewriter";
 import { FaGoogle } from "react-icons/fa";
@@ -9,8 +9,6 @@ import { Input } from "@/components/ui/input";
 import { signUp, signIn } from "@/lib/api/auth";
 import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
-import { Engine } from "tsparticles-engine";
-
 
 export default function AuthPage({ onLogin }: { onLogin: () => void }) {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -59,10 +57,9 @@ export default function AuthPage({ onLogin }: { onLogin: () => void }) {
   };
 
   // Particle Background Configuration
-  const particlesInit = useCallback(async (engine: Engine) => {
-    console.log("Initializing particles...");
+  const particlesInit = async (engine: any) => {
     await loadFull(engine);
-  }, []);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-900 to-indigo-900 flex items-center justify-center overflow-hidden relative">
