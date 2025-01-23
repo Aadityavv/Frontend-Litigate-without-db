@@ -1,309 +1,271 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Typewriter } from "react-simple-typewriter";
-import { FaGoogle } from "react-icons/fa";
+import AuthPage from "@/components/AuthPage";
+import Dashboard from "@/components/Dashboard";
+import CaseManagement from "@/components/CaseManagement";
+import LegalResearchTool from "@/components/LegalResearchTool";
+import CommunicationModule from "@/components/CommunicationModule";
+import SettingsComponent from "@/components/Settings";
+import CaseDetailView from "@/components/CaseDetailView";
+import {
+  Grid,
+  FolderOpen,
+  Search,
+  MessageSquare,
+  Settings,
+  LogOut,
+  ChevronsLeft,
+  ChevronsRight,
+  Menu,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { signUp, signIn } from "@/lib/api/auth";
-import Particles from "react-tsparticles";
-import { loadFull } from "tsparticles";
+import { cn } from "@/lib/utils";
 
-export default function AuthPage({ onLogin }: { onLogin: () => void }) {
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
+const sidebarItems = [
+  { name: "Dashboard", icon: <Grid className="h-5 w-5" />, section: "dashboard" },
+  { name: "Cases", icon: <FolderOpen className="h-5 w-5" />, section: "case-management" },
+  { name: "Research", icon: <Search className="h-5 w-5" />, section: "legal-research" },
+  { name: "Messages", icon: <MessageSquare className="h-5 w-5" />, section: "communication" },
+  { name: "Settings", icon: <Settings className="h-5 w-5" />, section: "settings" },
+];
 
-  const taglines = [
-    "Empowering legal professionals with cutting-edge technology.",
-    "Streamline your legal workflows efficiently.",
-    "Transforming the legal industry one step at a time.",
-    "Your legal partner in technology innovation.",
-  ];
+export default function UnifiedDashboardComponent() {
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [activeSection, setActiveSection] = useState("dashboard");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [selectedCaseId, setSelectedCaseId] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setIsSidebarOpen(false);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
-    if (isSignUp && formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
+  const handleLogout = () => setIsAuthenticated(true);
 
-    try {
-      const response = isSignUp
-        ? await signUp({ name: formData.name, email: formData.email, password: formData.password })
-        : await signIn({ email: formData.email, password: formData.password });
+  const pageTitles = {
+    dashboard: "Dashboard Overview",
+    "case-management": "Case Management",
+    "case-detail": "Case Details",
+    "legal-research": "Legal Research Hub",
+    communication: "Client Communications",
+    settings: "Account Settings",
+  };
 
-      if (response.error) {
-        alert(response.error);
-      } else {
-        alert(`${isSignUp ? "Sign-up" : "Login"} successful!`);
-        onLogin();
-      }
-    } catch (error) {
-      console.error("Authentication error:", error);
-      alert("An error occurred. Please try again.");
+  const renderContent = () => {
+    switch (activeSection) {
+      case "dashboard":
+        return <Dashboard />;
+      case "case-management":
+        return (
+          <CaseManagement
+            onCaseSelect={(id: number) => {
+              setSelectedCaseId(id);
+              setActiveSection("case-detail");
+            }}
+          />
+        );
+      case "case-detail":
+        return selectedCaseId ? (
+          <CaseDetailView caseId={selectedCaseId.toString()} />
+        ) : (
+          <p>No case selected. Go back to Case Management.</p>
+        );
+      case "legal-research":
+        return <LegalResearchTool />;
+      case "communication":
+        return <CommunicationModule />;
+      case "settings":
+        return <SettingsComponent />;
+      default:
+        return <div>Welcome to LitigateIQ</div>;
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setFormData((prev) => ({ ...prev, [id]: value }));
+  if (!isAuthenticated) {
+    return <AuthPage onLogin={() => setIsAuthenticated(true)} />;
+  }
+
+  const sidebarAnimation = {
+    mobile: {
+      open: { x: 0 },
+      closed: { x: '-100%' }
+    },
+    desktop: {
+      open: { width: 240 },
+      closed: { width: 80 }
+    }
   };
 
-  // Particle Background Configuration
-  const particlesInit = async (engine: any) => {
-    await loadFull(engine);
+  const contentVariants = {
+    hidden: { opacity: 0, x: 20 },
+    visible: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: -20 },
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-900 to-indigo-900 flex items-center justify-center overflow-hidden relative">
-      {/* Particle Background */}
-      <Particles
-        id="tsparticles"
-        init={particlesInit}
-        options={{
-          background: {
-            color: {
-              value: "transparent",
-            },
-          },
-          fpsLimit: 120,
-          interactivity: {
-            events: {
-              onHover: {
-                enable: true,
-                mode: "repulse",
-              },
-            },
-          },
-          particles: {
-            color: {
-              value: "#ffffff",
-            },
-            links: {
-              color: "#ffffff",
-              distance: 150,
-              enable: true,
-              opacity: 0.5,
-              width: 1,
-            },
-            move: {
-              direction: "none",
-              enable: true,
-              outModes: {
-                default: "bounce",
-              },
-              random: false,
-              speed: 2,
-              straight: false,
-            },
-            number: {
-              density: {
-                enable: true,
-                area: 800,
-              },
-              value: 80,
-            },
-            opacity: {
-              value: 0.5,
-            },
-            shape: {
-              type: "circle",
-            },
-            size: {
-              value: { min: 1, max: 3 },
-            },
-          },
-          detectRetina: true,
-        }}
-      />
-
-      {/* Main Content */}
+    <div className="flex h-screen overflow-hidden bg-gray-50">
+      {/* Animated Sidebar */}
       <motion.div
-        className="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl mx-4 p-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
+        className={`flex flex-col bg-gradient-to-b from-slate-900 to-slate-800 text-white shadow-xl z-50 ${
+          isMobile ? 'fixed inset-y-0' : 'relative'
+        }`}
+        animate={
+          isMobile
+            ? isSidebarOpen ? "open" : "closed"
+            : isSidebarOpen ? "open" : "closed"
+        }
+        variants={isMobile ? sidebarAnimation.mobile : sidebarAnimation.desktop}
+        transition={{ type: 'tween', duration: 0.3 }}
+        style={{ willChange: isMobile ? 'transform' : 'width' }}
       >
-        {/* Left Section */}
-        <motion.div
-          className="flex-1 flex flex-col items-center justify-center text-white p-6 md:p-12 space-y-6 text-center"
-          initial={{ x: -100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-        >
+        <div className="flex items-center justify-between p-4 border-b border-slate-700 h-16">
           <motion.h1
-            className="text-5xl md:text-6xl font-extrabold drop-shadow-lg"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 300 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isSidebarOpen ? 1 : 0 }}
+            className="text-xl font-semibold tracking-tight whitespace-nowrap overflow-hidden"
           >
             LitigateIQ
           </motion.h1>
-          <motion.p
-            className="text-lg md:text-xl text-gray-200"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 1 }}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="text-white hover:bg-slate-700/50 rounded-lg p-2 ml-2"
           >
-            <Typewriter
-              words={taglines}
-              loop={true}
-              cursor
-              cursorStyle="|"
-              typeSpeed={70}
-              deleteSpeed={50}
-            />
-          </motion.p>
-        </motion.div>
+            {isSidebarOpen ? (
+              <ChevronsLeft className="h-5 w-5" />
+            ) : (
+              <ChevronsRight className="h-5 w-5" />
+            )}
+          </Button>
+        </div>
 
-        {/* Right Section */}
-        <motion.div
-          className="flex-1 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl p-6 md:p-8 space-y-6 max-w-md w-full"
-          initial={{ x: 100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-        >
-          <motion.h2
-            className="text-3xl font-bold text-center text-white"
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            {isSignUp ? "Create an Account" : "Welcome Back!"}
-          </motion.h2>
-
-          <form onSubmit={handleFormSubmit} className="space-y-4">
-            <AnimatePresence mode="wait">
-              {isSignUp && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Input
-                    type="text"
-                    id="name"
-                    placeholder="Name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="w-full bg-white/10 border border-white/20 text-white placeholder-gray-300 rounded-lg"
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto overflow-x-hidden">
+          {sidebarItems.map((item) => (
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.3 }}
-            >
-              <Input
-                type="email"
-                id="email"
-                placeholder="Email Address"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="w-full bg-white/10 border border-white/20 text-white placeholder-gray-300 rounded-lg"
-              />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.3 }}
-            >
-              <Input
-                type="password"
-                id="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="w-full bg-white/10 border border-white/20 text-white placeholder-gray-300 rounded-lg"
-              />
-            </motion.div>
-
-            <AnimatePresence mode="wait">
-              {isSignUp && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Input
-                    type="password"
-                    id="confirmPassword"
-                    placeholder="Confirm Password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    required
-                    className="w-full bg-white/10 border border-white/20 text-white placeholder-gray-300 rounded-lg"
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.3 }}
+              key={item.section}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               <Button
-                type="submit"
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 text-sm font-semibold rounded-lg shadow-md transition-all duration-300"
+                onClick={() => {
+                  setActiveSection(item.section);
+                  isMobile && setIsSidebarOpen(false);
+                }}
+                className={cn(
+                  "w-full h-12 justify-start space-x-3 rounded-lg font-medium transition-colors",
+                  activeSection === item.section
+                    ? "bg-blue-600/90 hover:bg-blue-600 text-white"
+                    : "bg-transparent hover:bg-slate-700/30 text-slate-300"
+                )}
               >
-                {isSignUp ? "Sign Up" : "Login"}
+                {item.icon}
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: isSidebarOpen ? 1 : 0 }}
+                  className="whitespace-nowrap"
+                >
+                  {item.name}
+                </motion.span>
               </Button>
             </motion.div>
-          </form>
+          ))}
+        </nav>
 
-          <motion.div
-            className="relative flex items-center justify-center py-3"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.3 }}
-          >
-            <div className="absolute inset-0 border-t border-white/20"></div>
-            <span className="bg-transparent px-3 text-white text-sm">OR</span>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.3 }}
-          >
+        <div className="p-4 border-t border-slate-700">
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
-              className="w-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white py-2 text-sm font-semibold rounded-lg shadow-md transition-all duration-300"
+              variant="outline"
+              className="w-full h-12 space-x-2 bg-transparent hover:bg-slate-700/30 border-slate-600 text-slate-200 rounded-lg"
+              onClick={handleLogout}
             >
-              <FaGoogle className="mr-2" /> Continue with Google
+              <LogOut className="h-5 w-5" />
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isSidebarOpen ? 1 : 0 }}
+                className="whitespace-nowrap"
+              >
+                Sign Out
+              </motion.span>
             </Button>
           </motion.div>
-
-          <motion.p
-            className="text-sm text-center text-gray-300"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7, duration: 0.3 }}
-          >
-            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-            <button
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-indigo-400 font-semibold hover:underline"
-            >
-              {isSignUp ? "Login here" : "Sign up here"}
-            </button>
-          </motion.p>
-        </motion.div>
+        </div>
       </motion.div>
+
+      {/* Main Content Area */}
+      <div className={`flex-1 flex flex-col overflow-hidden min-w-0 ${
+        !isMobile && (isSidebarOpen ? 'ml-[0px]' : 'ml-[0px]')
+      } transition-all duration-300`}>
+        {/* Header */}
+        <header className="h-16 flex items-center justify-between px-6 bg-white border-b border-slate-200">
+          <div className="flex items-center space-x-4">
+            {isMobile && !isSidebarOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="text-slate-600"
+                >
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </motion.div>
+            )}
+            <AnimatePresence mode="wait">
+              <motion.h2
+                key={activeSection}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="text-2xl font-bold text-slate-800"
+              >
+                {pageTitles[activeSection as keyof typeof pageTitles]}
+              </motion.h2>
+            </AnimatePresence>
+          </div>
+          <div className="flex items-center space-x-4">
+            {/* Add any header widgets here */}
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <main className="flex-1 overflow-y-auto p-6 bg-slate-50 w-full">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeSection}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={contentVariants}
+              transition={{ duration: 0.2 }}
+              className="h-full w-full max-w-full"
+            >
+              {renderContent()}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
+
+      {/* Mobile Overlay */}
+      {isMobile && isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 sm:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 }
