@@ -186,23 +186,25 @@ export default function UnifiedDashboardComponent() {
         </nav>
 
         <div className="p-4 border-t border-slate-700">
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button
-              variant="outline"
-              className="w-full h-12 space-x-2 bg-transparent hover:bg-slate-700/30 border-slate-600 text-slate-200 rounded-lg"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-5 w-5" />
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: isSidebarOpen ? 1 : 0 }}
-                className="whitespace-nowrap"
-              >
-                Sign Out
-              </motion.span>
-            </Button>
-          </motion.div>
-        </div>
+  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+    <Button
+      variant="outline"
+      className="w-full h-12 space-x-2 bg-transparent hover:bg-slate-700/30 border-slate-600 text-slate-200 rounded-lg"
+      onClick={handleLogout}
+    >
+      <LogOut className="h-5 w-5" />
+      {isSidebarOpen && ( // Only show the text when the sidebar is open
+        <motion.span
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isSidebarOpen ? 1 : 0 }}
+          className="whitespace-nowrap"
+        >
+          Sign Out
+        </motion.span>
+      )}
+    </Button>
+  </motion.div>
+</div>
       </motion.div>
 
       {/* Main Content Area */}

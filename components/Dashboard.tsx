@@ -410,7 +410,7 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col md:grid md:grid-cols-4 gap-5">
+            <div className="flex flex-col md:grid md:grid-cols-4 gap-1">
             <div className="bg-white -mx-3 rounded-lg shadow-md -md:mx-4">
 
                 <Calendar
@@ -420,7 +420,7 @@ export default function Dashboard() {
                   className="border rounded-md"
                 />
               </div>
-              <div className="bg-white rounded-lg py-2 px-2 mx-2 shadow-md md:col-span-3">
+              <div className="bg-white rounded-lg py-2 px-2 mx-5 shadow-md md:col-span-3">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-semibold text-lg md:text-xl text-gray-700">
                     Events on {selectedDate ? format(selectedDate, "PPP") : "Select a date"}
