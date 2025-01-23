@@ -18,7 +18,7 @@ interface AddNewEventModalProps {
 export default function AddNewEventModal({ onClose, onAddEvent, onEditEvent, existingEvent }: AddNewEventModalProps) {
   // State variables
   const [caseId, setCaseId] = useState(existingEvent?.caseId || "");
-  const [lawyerId, setLawyerId] = useState(existingEvent?.lawyerId || "64b9f2d8c31e9a2d98765432"); // Static for now
+  const [lawyerId, setLawyerId] = useState(existingEvent?.lawyerId || "12345"); // Static for now
   const [eventDate, setEventDate] = useState(existingEvent?.eventDate || "");
   const [eventType, setEventType] = useState(existingEvent?.eventType || "Hearing");
   const [eventOutcome, setEventOutcome] = useState(existingEvent?.eventOutcome || "");

@@ -13,7 +13,7 @@ interface AddNewCaseModalProps {
 
 export default function AddNewCaseModal({ onClose, onAddCase }: AddNewCaseModalProps) {
   const [lawyerId, setLawyerId] = useState("12345");
-  const [lawyerName, setLawyerName] = useState("David Smith");
+  // const [lawyerName, setLawyerName] = useState("David Smith");
   const [caseTitle, setCaseTitle] = useState("");
   const [caseId, setCaseId] = useState("");
   const [judgeAssigned, setJudgeAssigned] = useState("");
@@ -70,7 +70,7 @@ export default function AddNewCaseModal({ onClose, onAddCase }: AddNewCaseModalP
 
     const newCase = {
       lawyerId,
-      lawyerName,
+      // lawyerName,
       caseId,
       caseTitle,
       caseDesc,
