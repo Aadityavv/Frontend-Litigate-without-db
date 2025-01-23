@@ -49,7 +49,7 @@ export default function UnifiedDashboardComponent() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const handleLogout = () => setIsAuthenticated(true);
+  const handleLogout = () => setIsAuthenticated(false);
 
   const pageTitles = {
     dashboard: "Dashboard Overview",
@@ -97,12 +97,12 @@ export default function UnifiedDashboardComponent() {
   const sidebarAnimation = {
     mobile: {
       open: { x: 0 },
-      closed: { x: '-100%' }
+      closed: { x: "-100%" },
     },
     desktop: {
       open: { width: 240 },
-      closed: { width: 80 }
-    }
+      closed: { width: 80 },
+    },
   };
 
   const contentVariants = {
@@ -116,16 +116,20 @@ export default function UnifiedDashboardComponent() {
       {/* Animated Sidebar */}
       <motion.div
         className={`flex flex-col bg-gradient-to-b from-slate-900 to-slate-800 text-white shadow-xl z-50 ${
-          isMobile ? 'fixed inset-y-0' : 'relative'
+          isMobile ? "fixed inset-y-0" : "relative"
         }`}
         animate={
           isMobile
-            ? isSidebarOpen ? "open" : "closed"
-            : isSidebarOpen ? "open" : "closed"
+            ? isSidebarOpen
+              ? "open"
+              : "closed"
+            : isSidebarOpen
+            ? "open"
+            : "closed"
         }
         variants={isMobile ? sidebarAnimation.mobile : sidebarAnimation.desktop}
-        transition={{ type: 'tween', duration: 0.3 }}
-        style={{ willChange: isMobile ? 'transform' : 'width' }}
+        transition={{ type: "tween", duration: 0.3 }}
+        style={{ willChange: isMobile ? "transform" : "width" }}
       >
         <div className="flex items-center justify-between p-4 border-b border-slate-700 h-16">
           <motion.h1
@@ -202,9 +206,11 @@ export default function UnifiedDashboardComponent() {
       </motion.div>
 
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col overflow-hidden min-w-0 ${
-        !isMobile && (isSidebarOpen ? 'ml-[0px]' : 'ml-[0px]')
-      } transition-all duration-300`}>
+      <div
+        className={`flex-1 flex flex-col overflow-hidden min-w-0 ${
+          !isMobile && (isSidebarOpen ? "ml-[0px]" : "ml-[0px]")
+        } transition-all duration-300`}
+      >
         {/* Header */}
         <header className="h-16 flex items-center justify-between px-6 bg-white border-b border-slate-200">
           <div className="flex items-center space-x-4">
