@@ -449,17 +449,17 @@ export default function Dashboard() {
                               <p className="font-bold text-gray-800">Case ID: {event.caseId}</p>
                               <Button
                                 onClick={() => handleEditEvent(event)}
-                                className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded-full"
+                                className="bg-blue-500 hover:bg-blue-600 text-white px-2 -py-2 rounded-lg text-sm md:px-2 "
                               >
-                                <Edit className="w-4 h-4" />
-                                <span className="hidden md:inline ml-2">Edit</span>
+                                <Edit className="w-4 h-4 " />
+                                <span className="hidden md:inline ml-2 ">Edit</span> {/* Reduced margin and hidden text on desktop */}
                               </Button>
                               <Button
                                 onClick={() => setEventToDelete(event.eventId)}
-                                className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded-full"
+                                className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded-lg text-sm md:px-2 md:py-0"
                               >
                                 <Trash className="w-4 h-4" />
-                                <span className="hidden md:inline ml-2">Delete</span>
+                                <span className="hidden md:inline ml-1">Delete</span> {/* Reduced margin and hidden text on desktop */}
                               </Button>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
