@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { UserCircleIcon } from "@heroicons/react/24/solid";
 import AddNewEventModal from "@/components/AddNewEvent";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { motion, AnimatePresence } from "framer-motion"; // Import framer-motion
+import { motion, AnimatePresence } from "framer-motion";
 
 // UI Components
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -380,7 +380,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-8 p-6 bg-white min-h-screen">
+    <div className="space-y-8 p-4 bg-white min-h-screen">
       {/* Loading Spinner */}
       {isLoading && <LoadingSpinner />}
 
@@ -391,8 +391,8 @@ export default function Dashboard() {
         transition={{ duration: 0.5 }}
         className="flex items-center space-x-4"
       >
-        <UserCircleIcon className="w-16 h-16 text-blue-600" />
-        <h1 className="text-4xl font-bold text-gray-800">
+        <UserCircleIcon className="w-12 h-12 text-blue-600" />
+        <h1 className="text-2xl md:text-4xl font-bold text-gray-800">
           Welcome, <span className="text-blue-600">{lawyerName}</span>!
         </h1>
       </motion.div>
@@ -405,13 +405,14 @@ export default function Dashboard() {
       >
         <Card className="shadow-xl border-0">
           <CardHeader>
-            <CardTitle className="text-2xl font-semibold text-gray-800">
+            <CardTitle className="text-xl md:text-2xl font-semibold text-gray-800">
               Appointments and Deadlines
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-lg shadow-md">
+            <div className="flex flex-col md:grid md:grid-cols-4 gap-5">
+            <div className="bg-white -mx-3 rounded-lg shadow-md -md:mx-4">
+
                 <Calendar
                   mode="single"
                   selected={selectedDate}
@@ -419,9 +420,9 @@ export default function Dashboard() {
                   className="border rounded-md"
                 />
               </div>
-              <div className="bg-white rounded-lg py-2 px-1 shadow-md md:col-span-2">
+              <div className="bg-white rounded-lg py-2 px-1 shadow-md md:col-span-3">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-xl text-gray-700">
+                  <h3 className="font-semibold text-lg md:text-xl text-gray-700">
                     Events on {selectedDate ? format(selectedDate, "PPP") : "Select a date"}
                   </h3>
                   <Button
@@ -494,92 +495,92 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
-        className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"
+        className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
       >
-{[
-  { id: "total-cases", title: "Total Cases", value: stats.totalCases, color: "blue" },
-  { id: "pending-cases", title: "Pending Cases", value: stats.pendingCases, color: "yellow" },
-  { id: "resolved-cases", title: "Resolved Cases", value: stats.resolvedCases, color: "green" },
-  { id: "upcoming-deadlines", title: "Upcoming Deadlines", value: stats.upcomingDeadlines, color: "red" },
-].map((stat) => (
-  <motion.div
-    key={stat.id}
-    whileHover={{ scale: 1.05 }}
-    whileTap={{ scale: 0.95 }}
-  >
-    <Card
-      className={`shadow-md transition-transform bg-white cursor-pointer h-44 flex flex-col justify-between ${
-        selectedCard === stat.id ? `ring-2 ring-${stat.color}-500` : ""
-      }`}
-      onClick={() => setSelectedCard(selectedCard === stat.id ? null : stat.id)}
-    >
-      <CardHeader className="p-4">
-        <CardTitle className="text-sm font-medium text-gray-700">
-          {stat.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-4 flex flex-col justify-between h-full">
-        <div className="flex items-center justify-between">
-          <div className={`text-4xl font-extrabold text-${stat.color}-600`}>
-            {stat.value}
-          </div>
-          {/* Overdue Cases (only for Pending Cases) */}
-          {stat.id === "pending-cases" && (
-            <div className="bg-red-50 rounded-full px-3 py-1">
-              <p className="text-sm text-red-600 font-medium">
-                Overdue: {stats.overduePendingCasesCount}
-              </p>
-            </div>
-          )}
-        </div>
-        {/* Progress Bar for All Cards */}
-        <div className="mt-2">
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className={`h-2 rounded-full bg-${stat.color}-600`}
-              style={{
-                width: `${
-                  stat.id === "total-cases"
-                    ? (stats.totalCases / 100) * 100
-                    : stat.id === "pending-cases"
-                    ? (stats.pendingCases / 100) * 100
-                    : stat.id === "resolved-cases"
-                    ? (stats.resolvedCases / 100) * 100
-                    : (stats.upcomingDeadlines / 100) * 100
-                }%`,
-              }}
-            ></div>
-          </div>
-          {/* Trend Indicator (if applicable) */}
-          {stat.id === "total-cases" && (
-            <p className="text-xs text-gray-500 mt-1">
-              +{stats.totalCasesChange} from last month
-            </p>
-          )}
-          {stat.id === "resolved-cases" && (
-            <p className="text-xs text-gray-500 mt-1">
-              +{stats.resolvedCasesChange} from last month
-            </p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+        {[
+          { id: "total-cases", title: "Total Cases", value: stats.totalCases, color: "blue" },
+          { id: "pending-cases", title: "Pending Cases", value: stats.pendingCases, color: "yellow" },
+          { id: "resolved-cases", title: "Resolved Cases", value: stats.resolvedCases, color: "green" },
+          { id: "upcoming-deadlines", title: "Upcoming Deadlines", value: stats.upcomingDeadlines, color: "red" },
+        ].map((stat) => (
+          <motion.div
+            key={stat.id}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Card
+              className={`shadow-md transition-transform bg-white cursor-pointer h-44 flex flex-col justify-between ${
+                selectedCard === stat.id ? `ring-2 ring-${stat.color}-500` : ""
+              }`}
+              onClick={() => setSelectedCard(selectedCard === stat.id ? null : stat.id)}
+            >
+              <CardHeader className="p-4">
+                <CardTitle className="text-sm font-medium text-gray-700">
+                  {stat.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 flex flex-col justify-between h-full">
+                <div className="flex items-center justify-between">
+                  <div className={`text-4xl font-extrabold text-${stat.color}-600`}>
+                    {stat.value}
+                  </div>
+                  {/* Overdue Cases (only for Pending Cases) */}
+                  {stat.id === "pending-cases" && (
+                    <div className="bg-red-50 rounded-full px-3 py-1">
+                      <p className="text-sm text-red-600 font-medium">
+                        Overdue: {stats.overduePendingCasesCount}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                {/* Progress Bar for All Cards */}
+                <div className="mt-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full bg-${stat.color}-600`}
+                      style={{
+                        width: `${
+                          stat.id === "total-cases"
+                            ? (stats.totalCases / 100) * 100
+                            : stat.id === "pending-cases"
+                            ? (stats.pendingCases / 100) * 100
+                            : stat.id === "resolved-cases"
+                            ? (stats.resolvedCases / 100) * 100
+                            : (stats.upcomingDeadlines / 100) * 100
+                        }%`,
+                      }}
+                    ></div>
+                  </div>
+                  {/* Trend Indicator (if applicable) */}
+                  {stat.id === "total-cases" && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      +{stats.totalCasesChange} from last month
+                    </p>
+                  )}
+                  {stat.id === "resolved-cases" && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      +{stats.resolvedCasesChange} from last month
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
-    {/* Display Sample Data Below the Card on Mobile */}
-    {selectedCard === stat.id && (
-      <div className="md:hidden mt-4">
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="text-xl text-gray-800">
-              {getCardTitle(selectedCard)}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>{getSampleData(selectedCard)}</CardContent>
-        </Card>
-      </div>
-    )}
-  </motion.div>
-))}
+            {/* Display Sample Data Below the Card on Mobile */}
+            {selectedCard === stat.id && (
+              <div className="md:hidden mt-4">
+                <Card className="shadow-md">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-gray-800">
+                      {getCardTitle(selectedCard)}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>{getSampleData(selectedCard)}</CardContent>
+                </Card>
+              </div>
+            )}
+          </motion.div>
+        ))}
       </motion.div>
 
       {/* Sample Data Display for Desktop */}
@@ -609,7 +610,7 @@ export default function Dashboard() {
       >
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl text-gray-800">Notifications</CardTitle>
+            <CardTitle className="text-xl md:text-2xl text-gray-800">Notifications</CardTitle>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px]">
