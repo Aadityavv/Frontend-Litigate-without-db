@@ -128,7 +128,7 @@ export default function AuthPage({ onLogin }: { onLogin: () => void }) {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full bg-white/10 border border-white/20 text-white placeholder-gray-300 rounded-lg"
+                    className="w-full bg-white/10 border border-white/20 text-white placeholder-white rounded-lg"
                   />
                 </motion.div>
               )}
@@ -146,7 +146,7 @@ export default function AuthPage({ onLogin }: { onLogin: () => void }) {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full bg-white/10 border border-white/20 text-white placeholder-gray-300 rounded-lg"
+                className="w-full bg-white/10 border border-white/20 text-white placeholder-white rounded-lg"
               />
             </motion.div>
 
@@ -162,7 +162,7 @@ export default function AuthPage({ onLogin }: { onLogin: () => void }) {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full bg-white/10 border border-white/20 text-white placeholder-gray-300 rounded-lg"
+                className="w-full bg-white/10 border border-white/20 text-white placeholder-white rounded-lg"
               />
             </motion.div>
 
@@ -181,7 +181,7 @@ export default function AuthPage({ onLogin }: { onLogin: () => void }) {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required
-                    className="w-full bg-white/10 border border-white/20 text-white placeholder-gray-300 rounded-lg"
+                    className="w-full bg-white/10 border border-white/20 text-white placeholder-white rounded-lg"
                   />
                 </motion.div>
               )}
