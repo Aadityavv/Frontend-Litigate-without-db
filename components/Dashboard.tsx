@@ -60,11 +60,11 @@ export default function Dashboard() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        setLawyerName(data.name || lawyerName);
+        setLawyerName(data.name || lawyerName );
         setLawyerId(data.lawyerId || "12345");
       } catch (error) {
         console.error("Error fetching user details:", error);
-        setLawyerName("Guest");
+        setLawyerName("Aaditya Vijayvargiya");
         setLawyerId("12345");
       } finally {
         setIsLoading(false);
@@ -420,7 +420,7 @@ export default function Dashboard() {
                   className="border rounded-md"
                 />
               </div>
-              <div className="bg-white rounded-lg py-2 px-1 shadow-md md:col-span-3">
+              <div className="bg-white rounded-lg py-2 px-2 mx-2 shadow-md md:col-span-3">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-semibold text-lg md:text-xl text-gray-700">
                     Events on {selectedDate ? format(selectedDate, "PPP") : "Select a date"}
