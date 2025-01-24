@@ -73,6 +73,7 @@ export default function CaseDetailView({ caseId }: CaseDetailViewProps) {
         console.log("Fetched Case Details:", data); // Debugging log
         setCaseDetails(data.message);
         setLoading(false);
+        fetchNotes();
       } catch (error) {
         console.error("Error fetching case details:", error);
         toast.error("Failed to fetch case details.");
@@ -83,33 +84,83 @@ export default function CaseDetailView({ caseId }: CaseDetailViewProps) {
     fetchCaseDetails();
   }, [caseId]);
 
+  const fetchNotes = async () => {
+    if (!caseId) return;
+    try {
+      const response = await fetch(`https://dummy-backend-15jt.onrender.com/notes/?lawyerId=user123&caseId=case98765`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log("Fetched Notes Data:", data);
+      const fetchedNotes = data.message.notes.map((note: any) => ({
+        content: note.noteDesc,
+        date: note.noteDate,
+      }));
+      setCaseDetails((prev) => prev ? { ...prev, notes: fetchedNotes } : null);
+    } catch (error) {
+      console.error("Error fetching notes:", error);
+      toast.error("Failed to fetch notes.");
+    }
+  };
   const handleNoteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNotes(e.target.value);
   };
-
-  const handleAddNote = () => {
+ 
+  const handleAddNote = async () => {
     if (notes.trim() === "") {
       toast.error("Please enter a note.");
       return;
     }
   
-    const newNote: Note = {
-      content: notes,
-      date: new Date().toISOString().split("T")[0],
+    const noteData = {
+      lawyerId: "12345", // Replace with the actual `lawyerId`
+      caseId, // The `caseId` passed as a prop
+      note: notes,
+      dateStamp: new Date().toISOString().split("T")[0], // Use ISO format for the date
     };
   
-    // Safely update notes in caseDetails
-    setCaseDetails((prev) => {
-      if (!prev) return null; // Handle caseDetails being null initially
-      return {
-        ...prev,
-        notes: prev.notes ? [newNote, ...prev.notes] : [newNote],
-      };
-    });
+    try {
+      // Show loading indicator
+      setLoading(true);
   
-    setNotes(""); // Clear the input field
-    toast.success("Note added successfully!");
+      const response = await fetch(`https://dummy-backend-15jt.onrender.com/post/new/note`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(noteData),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const savedNote = await response.json();
+      
+      // Update the state with the new note
+      setCaseDetails((prev) => {
+        if (!prev) return null;
+        const newNote: Note = {
+          content: savedNote.note, // Use data from the response
+          date: savedNote.dateStamp, // Use dateStamp from the response
+        };
+        return {
+          ...prev,
+          notes: prev.notes ? [newNote, ...prev.notes] : [newNote],
+        };
+      });
+  
+      setNotes(""); // Clear the textarea
+      toast.success("Note added successfully!");
+    } catch (error) {
+      console.error("Error adding note:", error);
+      toast.error("Failed to add note. Please try again.");
+    } finally {
+      setLoading(false); // Hide loading indicator
+    }
   };
+  
   
   const handleFavoriteToggle = () => {
     setIsFavorite((prev) => !prev); // Toggle favorite status
