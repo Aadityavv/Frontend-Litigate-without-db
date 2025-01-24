@@ -229,7 +229,7 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
                           mode="range"
                           selected={deadlineRange}
                           onSelect={setDeadlineRange}
-                          numberOfMonths={2} // Show two months for better range selection
+                          numberOfMonths={1} // Show two months for better range selection
                           className="rounded-md border"
                         />
                         {deadlineRange && (
