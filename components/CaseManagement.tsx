@@ -46,6 +46,7 @@ const statusOptions = ["pending", "active", "closed"];
 export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
   const router = useRouter();
   const [cases, setCases] = useState<Case[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddCaseModalOpen, setIsAddCaseModalOpen] = useState(false);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
@@ -59,6 +60,8 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
       } catch (error) {
         console.error("Error fetching cases:", error);
         toast.error("Failed to fetch cases. Please try again later.");
+      } finally {
+        setIsLoading(false);
       }
     };
     loadCases();
@@ -264,102 +267,117 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
         </Card>
 
         {/* Cases List */}
-        <Card className="shadow-sm border-gray-200">
-          <ScrollArea className="h-[calc(100vh-320px)]">
-            <CardContent className="p-4 sm:p-6">
-              {filteredCases.length > 0 ? (
-                filteredCases.map(case_ => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {isLoading ? (
+            <div className="col-span-full flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
+            </div>
+          ) : filteredCases.length > 0 ? (
+            filteredCases.map(case_ => (
+              <Card
+                key={case_.id}
+                className="group relative bg-white rounded-lg border border-gray-200 hover:border-blue-200 hover:shadow-lg transition-all duration-200 ease-in-out"
+              >
+                <CardContent className="p-6 space-y-4">
+                  {/* Case Header */}
                   <div
-                    key={case_.id}
-                    className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 mb-3 bg-white rounded-lg border border-gray-200 hover:border-blue-200 hover:shadow-md transition-all"
+                    onClick={() => onCaseSelect(case_.id)}
+                    className="cursor-pointer space-y-2"
                   >
-                    <div
-                      onClick={() => onCaseSelect(case_.id)}
-                      className="flex-1 cursor-pointer space-y-2 min-w-0"
-                    >
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900 truncate">
-                          {case_.title}
-                        </h3>
-                        {case_.isPinned && (
-                          <Star className="w-4 h-4 text-yellow-500 fill-current shrink-0" />
-                        )}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                        <Badge
-                          variant={
-                            case_.status === 'active' ? 'default' : 
-                            case_.status === 'closed' ? 'secondary' : 'outline'
-                          }
-                          className="text-xs capitalize"
-                        >
-                          {case_.status}
-                        </Badge>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">ID:</span>
-                          <span>{case_.id}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">Deadline:</span>
-                          <span>
-                            {format(new Date(case_.deadline), "MMM dd, yyyy")}
-                          </span>
-                        </div>
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-gray-900 truncate">
+                        {case_.title}
+                      </h3>
+                      {case_.isPinned && (
+                        <Star className="w-5 h-5 text-yellow-500 fill-current shrink-0" />
+                      )}
                     </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-2 mt-3 sm:mt-0">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePinCase(case_.id);
-                        }}
-                        className="text-gray-400 hover:bg-gray-50 rounded-lg"
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant={
+                          case_.status === 'active' ? 'default' : 
+                          case_.status === 'closed' ? 'secondary' : 'outline'
+                        }
+                        className="text-xs capitalize"
                       >
-                        {case_.isPinned ? (
-                          <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                        ) : (
-                          <StarOff className="w-5 h-5" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditCase(case_.id);
-                        }}
-                        className="text-gray-400 hover:bg-gray-50 rounded-lg"
-                      >
-                        <Edit className="w-5 h-5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteCase(case_.id);
-                        }}
-                        className="text-red-400 hover:bg-red-50 rounded-lg"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </Button>
+                        {case_.status}
+                      </Badge>
+                      <span className="text-sm text-gray-500">ID: {case_.id}</span>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">
-                    No cases found. Start by adding a new case.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </ScrollArea>
-        </Card>
+
+                  {/* Case Details */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <span className="font-medium">Deadline:</span>
+                      <span>
+                        {case_.deadline && !isNaN(new Date(case_.deadline).getTime())
+                          ? format(new Date(case_.deadline), "MMM dd, yyyy")
+                          : "No deadline"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePinCase(case_.id);
+                      }}
+                      className="text-gray-500 hover:bg-gray-100 rounded-lg"
+                    >
+                      {case_.isPinned ? (
+                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                      ) : (
+                        <StarOff className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditCase(case_.id);
+                      }}
+                      className="text-gray-500 hover:bg-gray-100 rounded-lg"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteCase(case_.id);
+                      }}
+                      className="text-red-500 hover:bg-red-100 rounded-lg"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <div className="space-y-4">
+                <p className="text-gray-500">
+                  No cases found. Start by adding a new case.
+                </p>
+                <Button
+                  onClick={() => setIsAddCaseModalOpen(true)}
+                  className="gap-2 bg-blue-600 hover:bg-blue-700"
+                >
+                  <PlusCircle className="w-5 h-5" />
+                  Add New Case
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Add New Case Modal */}
