@@ -649,7 +649,7 @@ export default function Dashboard() {
             message="Are you sure you want to delete this event?"
             onConfirm={handleDeleteEvent}
             onCancel={() => setEventToDelete(null)}
-          />
+          />    
         )}
       </AnimatePresence>
     </div>
