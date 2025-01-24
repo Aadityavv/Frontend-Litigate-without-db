@@ -10,7 +10,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area"; // Import ScrollArea
 import { PlusCircle, Star, StarOff, Search, Edit, Trash2, Plus, Filter, X } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 import { Input } from "@/components/ui/input";
@@ -180,86 +180,104 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-64 p-4" align="end">
-                  <div className="space-y-4">
-                    {/* Header */}
-                    <div className="flex justify-between items-center">
-                      <h4 className="font-medium text-sm">Filters</h4>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={clearFilters}
-                        className="text-xs h-6 px-2"
-                        disabled={activeFilterCount === 0}
-                      >
-                        Clear all
-                      </Button>
-                    </div>
-
-                    {/* Status Filters */}
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm">Case Status</h4>
-                      {statusOptions.map(status => (
-                        <div 
-                          key={status}
-                          className="flex items-center gap-2"
+                <DropdownMenuContent className="w-auto p-4" align="end">
+                  <ScrollArea className="h-[400px]"> {/* Add ScrollArea with fixed height */}
+                    <div className="space-y-4">
+                      {/* Header */}
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-medium text-sm">Filters</h4>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={clearFilters}
+                          className="text-xs h-6 px-2"
+                          disabled={activeFilterCount === 0}
                         >
-                          <Checkbox
-                            id={status}
-                            checked={selectedStatuses.includes(status)}
-                            onCheckedChange={() => handleStatusFilter(status)}
-                          />
-                          <Label 
-                            htmlFor={status}
-                            className="text-sm capitalize cursor-pointer"
-                          >
-                            {status}
-                          </Label>
+                          Clear all
+                        </Button>
+                      </div>
+
+                      {/* Status Filters */}
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-sm">Case Status</h4>
+                        <div className="flex flex-wrap gap-4">
+                          {statusOptions.map(status => (
+                            <div 
+                              key={status}
+                              className="flex items-center gap-2"
+                            >
+                              <Checkbox
+                                id={status}
+                                checked={selectedStatuses.includes(status)}
+                                onCheckedChange={() => handleStatusFilter(status)}
+                              />
+                              <Label 
+                                htmlFor={status}
+                                className="text-sm capitalize cursor-pointer"
+                              >
+                                {status}
+                              </Label>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
 
-                    {/* Deadline Filter */}
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm">Deadline Range</h4>
-                      <Calendar
-                        mode="range"
-                        selected={deadlineRange}
-                        onSelect={setDeadlineRange}
-                        numberOfMonths={1}
-                        className="rounded-md border"
-                      />
-                    </div>
-
-                    {/* Active Filters */}
-                    {activeFilterCount > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-4">
-                        {selectedStatuses.map(status => (
-                          <Badge
-                            key={status}
-                            variant="outline"
-                            className="capitalize"
-                          >
-                            {status}
-                            <X
-                              className="w-3 h-3 ml-1 cursor-pointer"
-                              onClick={() => handleStatusFilter(status)}
-                            />
-                          </Badge>
-                        ))}
-                        {deadlineRange?.from && deadlineRange?.to && (
-                          <Badge variant="outline">
-                            {format(deadlineRange.from, "MMM dd")} -{" "}
-                            {format(deadlineRange.to, "MMM dd")}
-                            <X
-                              className="w-3 h-3 ml-1 cursor-pointer"
-                              onClick={() => setDeadlineRange(undefined)}
-                            />
-                          </Badge>
+                      {/* Deadline Filter */}
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-sm">Deadline Range</h4>
+                        <Calendar
+                          mode="range"
+                          selected={deadlineRange}
+                          onSelect={setDeadlineRange}
+                          numberOfMonths={2} // Show two months for better range selection
+                          className="rounded-md border"
+                        />
+                        {deadlineRange && (
+                          <div className="flex gap-2 text-sm text-gray-600">
+                            {deadlineRange.from && (
+                              <Badge variant="outline">
+                                Start: {format(deadlineRange.from, "MMM dd yyyy")}
+                              </Badge>
+                            )}
+                            {deadlineRange.to && (
+                              <Badge variant="outline">
+                                End: {format(deadlineRange.to, "MMM dd yyyy")}
+                              </Badge>
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
-                  </div>
+
+                      {/* Active Filters */}
+                      {activeFilterCount > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-4">
+                          {selectedStatuses.map(status => (
+                            <Badge
+                              key={status}
+                              variant="outline"
+                              className="capitalize"
+                            >
+                              {status}
+                              <X
+                                className="w-3 h-3 ml-1 cursor-pointer"
+                                onClick={() => handleStatusFilter(status)}
+                              />
+                            </Badge>
+                          ))}
+                          {deadlineRange?.from && (
+                            <Badge variant="outline">
+                              {format(deadlineRange.from, "MMM dd")}
+                              {deadlineRange.to && ` - ${format(deadlineRange.to, "MMM dd")}`}
+                              <X
+                                className="w-3 h-3 ml-1 cursor-pointer"
+                                onClick={() => setDeadlineRange(undefined)}
+                              />
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
