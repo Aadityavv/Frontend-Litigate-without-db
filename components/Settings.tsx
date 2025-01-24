@@ -58,7 +58,7 @@ export default function SettingsComponent() {
   };
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 space-y-8 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 min-h-screen">
+    <div className="container mx-auto p-4 sm:p-6 space-y-8 bg-gradient-to-br from-gray-50 to-white-50 dark:from-gray-900 dark:to-gray-800 min-h-screen">
       <div className="grid gap-6">
         {/* Account Settings */}
         <motion.div
