@@ -23,7 +23,7 @@ const LoadingSpinner = () => (
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [lawyerName, setLawyerName] = useState("Aaditya vijayvargiya");
+  const [lawyerName, setLawyerName] = useState("Aaditya Vijayvargiya");
   const [events, setEvents] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [deadlines, setDeadlines] = useState<any[]>([]);
