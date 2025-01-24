@@ -34,7 +34,7 @@ const sidebarItems = [
 export default function UnifiedDashboardComponent() {
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [activeSection, setActiveSection] = useState("dashboard");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedCaseId, setSelectedCaseId] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
