@@ -12,13 +12,18 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { CalendarDays, FileText, MessageSquare } from "lucide-react";
+import { CalendarDays, FileText, MessageSquare, User, Users, Plus, ChevronRight } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface Message {
   id: string;
   sender: string;
   content: string;
   timestamp: string;
+  avatar?: string;
 }
 
 interface Task {
@@ -26,18 +31,21 @@ interface Task {
   task: string;
   assignedTo: string;
   dueDate: string;
+  status: "pending" | "in-progress" | "completed";
 }
 
 interface File {
   id: string;
   name: string;
   url: string;
+  type: string;
 }
 
 interface Note {
   id: string;
   content: string;
   author: string;
+  timestamp: string;
 }
 
 export default function CommunicationModule() {
@@ -60,7 +68,6 @@ export default function CommunicationModule() {
           fetch(`https://dummy-backend-15jt.onrender.com/communication/tasks`),
           fetch(`https://dummy-backend-15jt.onrender.com/communication/files`),
           fetch(`https://dummy-backend-15jt.onrender.com/communication/notes`),
-
         ]);
 
         setMessages((await personalRes.json()) || []);
@@ -142,144 +149,276 @@ export default function CommunicationModule() {
   };
 
   return (
-    <div className="space-y-6 p-0 sm:p-6 bg-gray-0">
+    <div className="space-y-6 p-4 bg-gradient-to-br from-slate-50 to-white-100 min-h-screen">
       {/* Communication Module */}
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold flex items-center space-x-2">
-            <MessageSquare className="h-6 w-6 text-blue-500" />
-            <span>Chats</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs
-            value={activeTab}
-            onValueChange={(value) => setActiveTab(value as "personal" | "groups")}
-            className="w-full"
-          >
-            <TabsList className="mb-4">
-              <TabsTrigger value="personal">Personal DMs</TabsTrigger>
-              <TabsTrigger value="groups">Group Chats</TabsTrigger>
-            </TabsList>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl sm:text-2xl font-bold flex items-center space-x-3 text-slate-800">
+              <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+              <span>Team Communications</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Tabs
+              value={activeTab}
+              onValueChange={(value) => setActiveTab(value as "personal" | "groups")}
+              className="w-full"
+            >
+              <TabsList className="mb-4 px-2 sm:px-4 bg-transparent border-b rounded-none">
+                <TabsTrigger
+                  value="personal"
+                  className="data-[state=active]:bg-transparent data-[state=active]:shadow-none px-2 sm:px-4 py-1 sm:py-2 rounded-lg flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-slate-500 data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-600"
+                >
+                  <User className="h-3 w-3 sm:h-4 sm:w-4" />
+                  Direct Messages
+                </TabsTrigger>
+                <TabsTrigger
+                  value="groups"
+                  className="data-[state=active]:bg-transparent data-[state=active]:shadow-none px-2 sm:px-4 py-1 sm:py-2 rounded-lg flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-slate-500 data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-600"
+                >
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                  Group Channels
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="personal">
-              <ScrollArea className="h-64 border rounded-md p-4 mb-4">
-                {messages.length > 0 ? (
-                  messages.map((msg) => (
-                    <div key={msg.id} className="mb-4 text-left">
-                      <p className="text-sm font-medium">{msg.sender}</p>
-                      <p>{msg.content}</p>
-                      <span className="text-xs text-gray-500">{msg.timestamp}</span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500">No messages to display.</p>
-                )}
-              </ScrollArea>
-              <div className="flex items-center space-x-2">
-                <Textarea
-                  placeholder="Type your message..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  className="flex-1 resize-none"
-                />
-                <Button onClick={handleSendMessage}>Send</Button>
-              </div>
-            </TabsContent>
+              {/* Messages Content */}
+              <TabsContent value="personal" className="relative">
+                <ScrollArea className="h-[300px] sm:h-[400px] px-2 sm:px-4">
+                  <div className="space-y-3 pr-2 sm:pr-4">
+                    {messages.length > 0 ? (
+                      messages.map((msg) => (
+                        <motion.div
+                          key={msg.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="flex items-start gap-2 sm:gap-3 group"
+                        >
+                          <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border-2 border-white shadow-sm">
+                            <AvatarImage src={msg.avatar} />
+                            <AvatarFallback className="bg-blue-100 text-blue-800 text-sm">
+                              {msg.sender[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-1 sm:gap-2 mb-1">
+                              <span className="text-xs sm:text-sm font-semibold text-slate-700">
+                                {msg.sender}
+                              </span>
+                              <span className="text-xs text-slate-400">{msg.timestamp}</span>
+                            </div>
+                            <div className="p-2 sm:p-3 bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-100">
+                              <p className="text-xs sm:text-sm text-slate-600">{msg.content}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))
+                    ) : (
+                      <div className="flex items-center justify-center h-[250px] sm:h-[300px]">
+                        <p className="text-xs sm:text-sm text-slate-400">No messages to display.</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+                <div className="sticky bottom-0 bg-white/90 backdrop-blur-sm border-t border-slate-100 p-2 sm:p-4">
+                  <div className="flex items-center gap-2">
+                    <Textarea
+                      placeholder="Write a message..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      className="flex-1 resize-none border-0 bg-slate-50 focus-visible:ring-1 ring-blue-500 text-xs sm:text-sm"
+                      rows={1}
+                    />
+                    <Button
+                      onClick={handleSendMessage}
+                      className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white shadow-sm text-xs sm:text-sm"
+                    >
+                      Send
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
 
-            <TabsContent value="groups">
-              <ScrollArea className="h-64 border rounded-md p-4 mb-4">
-                {groupMessages.length > 0 ? (
-                  groupMessages.map((msg) => (
-                    <div key={msg.id} className="mb-4 text-left">
-                      <p className="text-sm font-medium">{msg.sender}</p>
-                      <p>{msg.content}</p>
-                      <span className="text-xs text-gray-500">{msg.timestamp}</span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500">No group messages to display.</p>
-                )}
-              </ScrollArea>
-              <div className="flex items-center space-x-2">
-                <Textarea
-                  placeholder="Type your message..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  className="flex-1 resize-none"
-                />
-                <Button onClick={handleSendMessage}>Send</Button>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+              {/* Group Content */}
+              <TabsContent value="groups" className="relative">
+                <ScrollArea className="h-[300px] sm:h-[400px] px-2 sm:px-4">
+                  <div className="space-y-3 pr-2 sm:pr-4">
+                    {groupMessages.length > 0 ? (
+                      groupMessages.map((msg) => (
+                        <motion.div
+                          key={msg.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="flex items-start gap-2 sm:gap-3 group"
+                        >
+                          <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border-2 border-white shadow-sm">
+                            <AvatarImage src={msg.avatar} />
+                            <AvatarFallback className="bg-blue-100 text-blue-800 text-sm">
+                              {msg.sender[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-1 sm:gap-2 mb-1">
+                              <span className="text-xs sm:text-sm font-semibold text-slate-700">
+                                {msg.sender}
+                              </span>
+                              <span className="text-xs text-slate-400">{msg.timestamp}</span>
+                            </div>
+                            <div className="p-2 sm:p-3 bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-100">
+                              <p className="text-xs sm:text-sm text-slate-600">{msg.content}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))
+                    ) : (
+                      <div className="flex items-center justify-center h-[250px] sm:h-[300px]">
+                        <p className="text-xs sm:text-sm text-slate-400">No group messages to display.</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+                <div className="sticky bottom-0 bg-white/90 backdrop-blur-sm border-t border-slate-100 p-2 sm:p-4">
+                  <div className="flex items-center gap-2">
+                    <Textarea
+                      placeholder="Write a message..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      className="flex-1 resize-none border-0 bg-slate-50 focus-visible:ring-1 ring-blue-500 text-xs sm:text-sm"
+                      rows={1}
+                    />
+                    <Button
+                      onClick={handleSendMessage}
+                      className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white shadow-sm text-xs sm:text-sm"
+                    >
+                      Send
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Task Assignment Section */}
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold flex items-center space-x-2">
-            <CalendarDays className="h-6 w-6 text-purple-500" />
-            <span>Task Assignment</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-64 border rounded-md p-4 mb-4">
-            {tasks.length > 0 ? (
-              tasks.map((task) => (
-                <div key={task.id} className="mb-4">
-                  <p className="font-medium">{task.task}</p>
-                  <p className="text-sm text-gray-500">Assigned to: {task.assignedTo}</p>
-                  <p className="text-sm text-gray-500">Due: {task.dueDate}</p>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-gray-500">No tasks to display.</p>
-            )}
-          </ScrollArea>
-          <div className="flex items-center space-x-2">
-            <Input
-              placeholder="Add new task"
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-            />
-            <Button onClick={handleAddTask}>Add Task</Button>
-          </div>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
+        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl sm:text-2xl font-bold flex items-center space-x-3 text-slate-800">
+              <CalendarDays className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+              <span>Task Management</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[200px] sm:h-[300px]">
+              <div className="space-y-2 pr-2 sm:pr-4">
+                {tasks.map((task) => (
+                  <motion.div
+                    key={task.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center p-2 sm:p-3 bg-white rounded-lg shadow-sm border border-slate-100 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div
+                          className={cn(
+                            "w-2 h-2 rounded-full",
+                            task.status === "completed" ? "bg-green-500" : "bg-amber-500"
+                          )}
+                        />
+                        <span className="text-xs sm:text-sm font-medium text-slate-700">
+                          {task.task}
+                        </span>
+                      </div>
+                      <div className="ml-4 sm:ml-5 mt-1 flex items-center gap-2 sm:gap-3">
+                        <span className="text-xs text-slate-400">{task.assignedTo}</span>
+                        <span className="text-xs text-slate-400">•</span>
+                        <span className="text-xs text-slate-400">{task.dueDate}</span>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 text-slate-400" />
+                  </motion.div>
+                ))}
+              </div>
+            </ScrollArea>
+            <div className="mt-4 flex items-center gap-2">
+              <Input
+                placeholder="Add new task..."
+                value={newTask}
+                onChange={(e) => setNewTask(e.target.value)}
+                className="border-0 bg-slate-50 focus-visible:ring-1 ring-purple-500 text-xs sm:text-sm"
+              />
+              <Button
+                onClick={handleAddTask}
+                className="shrink-0 bg-purple-600 hover:bg-purple-700 text-white shadow-sm text-xs sm:text-sm"
+              >
+                <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Collaborative Notes Section */}
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold flex items-center space-x-2">
-            <FileText className="h-6 w-6 text-teal-500" />
-            <span>Collaborative Notes</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-64 border rounded-md p-4 mb-4">
-            {notes.length > 0 ? (
-              notes.map((note) => (
-                <div key={note.id} className="mb-4">
-                  <p>{note.content}</p>
-                  <p className="text-sm text-gray-500">- {note.author}</p>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-gray-500">No notes to display.</p>
-            )}
-          </ScrollArea>
-          <div className="flex items-center space-x-2">
-            <Textarea
-              placeholder="Add a new note"
-              value={newNote}
-              onChange={(e) => setNewNote(e.target.value)}
-              className="flex-1 resize-none"
-            />
-            <Button onClick={handleAddNote}>Add Note</Button>
-          </div>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+      >
+        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl sm:text-2xl font-bold flex items-center space-x-3 text-slate-800">
+              <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-teal-600" />
+              <span>Collaborative Notes</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[200px] sm:h-[300px]">
+              <div className="space-y-2 pr-2 sm:pr-4">
+                {notes.map((note) => (
+                  <motion.div
+                    key={note.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-2 sm:p-3 bg-white rounded-lg shadow-sm border border-slate-100 hover:shadow-md transition-shadow"
+                  >
+                    <p className="text-xs sm:text-sm text-slate-600">{note.content}</p>
+                    <div className="mt-1 sm:mt-2 flex items-center gap-1 sm:gap-2">
+                      <span className="text-xs text-slate-400">{note.author}</span>
+                      <span className="text-xs text-slate-400">•</span>
+                      <span className="text-xs text-slate-400">{note.timestamp}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </ScrollArea>
+            <div className="mt-4 flex items-center gap-2">
+              <Textarea
+                placeholder="Add a new note..."
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                className="border-0 bg-slate-50 focus-visible:ring-1 ring-teal-500 text-xs sm:text-sm"
+                rows={1}
+              />
+              <Button
+                onClick={handleAddNote}
+                className="shrink-0 bg-teal-600 hover:bg-teal-700 text-white shadow-sm text-xs sm:text-sm"
+              >
+                <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }

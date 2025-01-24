@@ -126,8 +126,8 @@ export default function AddNewCaseModal({ onClose, onAddCase }: AddNewCaseModalP
       <motion.div
         className="bg-white rounded-lg shadow-lg w-full max-w-xl p-3 space-y-3 md:max-w-2xl sm:max-w-xs sm:p-2 overflow-y-auto max-h-screen"
         style={{ marginTop: "5.5%", marginBottom: "5.5%" }}
-        initial={{ scale: 0.5 }}
-        animate={{ scale: 0.9 }}
+        initial={{ scale: 0.7 }}
+        animate={{ scale: 0.85 }}
         exit={{ scale: 0.1 }}
       >
         <h2 className="text-lg font-semibold text-gray-800 mb-3 text-center">Add New Case</h2>
