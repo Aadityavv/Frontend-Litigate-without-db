@@ -52,7 +52,7 @@ export default function UnifiedDashboardComponent() {
   const handleLogout = () => setIsAuthenticated(false);
 
   const pageTitles = {
-    dashboard: "Dashboard Overview",
+    dashboard: "Dashboard",
     "case-management": "Case Management",
     "case-detail": "Case Details",
     "legal-research": "Legal Research Hub",
