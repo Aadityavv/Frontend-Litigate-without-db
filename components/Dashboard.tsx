@@ -23,7 +23,7 @@ const LoadingSpinner = () => (
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [lawyerName, setLawyerName] = useState("John Doe");
+  const [lawyerName, setLawyerName] = useState("Aaditya vijayvargiya");
   const [events, setEvents] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [deadlines, setDeadlines] = useState<any[]>([]);
@@ -380,7 +380,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-8 p-4 bg-white min-h-screen">
+    <div className="space-y-8 py-4 px-2 bg-white min-h-screen">
       {/* Loading Spinner */}
       {isLoading && <LoadingSpinner />}
 
@@ -410,8 +410,8 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col md:grid md:grid-cols-4 gap-1">
-            <div className="bg-white -mx-3 rounded-lg shadow-md -md:mx-4">
+            <div className="flex flex-col -mx-2 md:grid md:grid-cols-4 gap-8">
+            <div className="bg-white -mx-3 -px-4 rounded-lg shadow-md -md:mx-4">
 
                 <Calendar
                   mode="single"
@@ -420,7 +420,7 @@ export default function Dashboard() {
                   className="border rounded-md"
                 />
               </div>
-              <div className="bg-white rounded-lg py-2 px-2 mx-5 shadow-md md:col-span-3">
+              <div className="bg-white rounded-lg py-2 -mx-3 px-2 shadow-md md:col-span-3">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-semibold text-lg md:text-xl text-gray-700">
                     Events on {selectedDate ? format(selectedDate, "PPP") : "Select a date"}
