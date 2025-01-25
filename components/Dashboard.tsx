@@ -36,11 +36,11 @@ export default function Dashboard() {
     resolvedCases: 0,
     resolvedCasesChange: 0,
     upcomingDeadlines: 0,
-    totalCasesDetails: [],
-    pendingCasesDetails: [],
-    overduePendingCasesDetails: [],
-    resolvedCasesDetails: [],
-    upcomingDeadlineDetails: [],
+    totalCasesDetails: [] as Array<{ caseId: string; caseTitle: string }>,
+    pendingCasesDetails: [] as any[],
+    overduePendingCasesDetails: [] as any[],
+    resolvedCasesDetails: [] as any[],
+    upcomingDeadlineDetails: [] as any[],
   });
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [showCount, setShowCount] = useState(5);
@@ -56,11 +56,9 @@ export default function Dashboard() {
       setIsLoading(true);
       try {
         const response = await fetch(`https://dummy-backend-15jt.onrender.com/user`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
-        setLawyerName(data.name || lawyerName );
+        setLawyerName(data.name || lawyerName);
         setLawyerId(data.lawyerId || "12345");
       } catch (error) {
         console.error("Error fetching user details:", error);
@@ -77,30 +75,19 @@ export default function Dashboard() {
         const response = await fetch(
           `https://dashboardservice-bg5v.onrender.com/count/countCases?lawyerId=${lawyerId}`
         );
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
 
-        setStats({
+        setStats(prev => ({
+          ...prev,
           totalCases: data.totalCases,
-          totalCasesChange: 0,
           pendingCases: data.pendingCases,
-          pendingCasesChange: 0,
           overduePendingCasesCount: data.overdueCases,
           resolvedCases: data.resolvedCases,
-          resolvedCasesChange: 0,
           upcomingDeadlines: data.upcomingDeadlines,
-          totalCasesDetails: [],
-          pendingCasesDetails: [],
-          overduePendingCasesDetails: [],
-          resolvedCasesDetails: [],
-          upcomingDeadlineDetails: [],
-        });
+        }));
 
-        if (data.upcomingDeadlineDetails) {
-          setDeadlines(data.upcomingDeadlineDetails);
-        }
+        setDeadlines(data.upcomingDeadlineDetails || []);
       } catch (error) {
         console.error("Error fetching stats:", error);
       } finally {
@@ -112,8 +99,7 @@ export default function Dashboard() {
       setIsLoading(true);
       try {
         const response = await fetch(`https://dummy-backend-15jt.onrender.com/dashboard/notifications`);
-        const data = await response.json();
-        setNotifications(data);
+        setNotifications(await response.json());
       } catch (error) {
         console.error("Error fetching notifications:", error);
       } finally {
@@ -126,21 +112,43 @@ export default function Dashboard() {
     fetchNotifications();
   }, [lawyerId]);
 
+  // Fetch total cases details
+  useEffect(() => {
+    const fetchTotalCasesDetails = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(
+          `https://dashboardservice-bg5v.onrender.com/totalcases/caseIdAndTitle?lawyerId=${lawyerId}`
+        );
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        
+        setStats(prev => ({
+          ...prev,
+          totalCasesDetails: data,
+          totalCases: data.length
+        }));
+      } catch (error) {
+        console.error("Error fetching total cases details:", error);
+        toast.error("Failed to fetch total cases details. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTotalCasesDetails();
+  }, [lawyerId]);
+
   // Fetch events dynamically based on the selected date
-  const fetchEvents = async (date: Date) => {
+  const fetchEvents = async () => {
     setIsLoading(true);
     try {
-      const formattedDate = selectedDate;
-      console.log(selectedDate);
       const response = await fetch(
-        `https://dashboardservice-bg5v.onrender.com/api/getEvents/?lawyerId=${lawyerId}&eventDate=${formattedDate}`
+        `https://dashboardservice-bg5v.onrender.com/api/getEvents/?lawyerId=${lawyerId}&eventDate=${selectedDate}`
       );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
       const data = await response.json();
-      console.log("Events data fetched:", data);
-
       const casesWithEvents = data.message.casesWithEventsAndParties || [];
       const eventsArray = casesWithEvents.flatMap((caseData: any) =>
         caseData.events.map((event: any) => ({
@@ -152,7 +160,6 @@ export default function Dashboard() {
       );
 
       setEvents(eventsArray);
-      console.log("Updated Events State:", eventsArray);
     } catch (error) {
       console.error("Error fetching events:", error);
       toast.error("Failed to fetch events. Please try again.");
@@ -162,10 +169,9 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    if (selectedDate) {
-      fetchEvents(selectedDate);
-    }
+    if (selectedDate) fetchEvents();
   }, [selectedDate, lawyerId]);
+
 
   // Add Event Handler
   const handleAddEvent = async (eventData: any) => {
@@ -282,35 +288,36 @@ export default function Dashboard() {
 
   // Get Sample Data for Cards
   const getSampleData = (card: string) => {
-    const casesToShow = (cases: any[]) =>
-      cases.slice(0, showCount).map((caseItem, index) => (
-        <li key={index} className="mb-2">
+    const casesToShow = (cases: Array<{ caseId: string; caseTitle: string }>) =>
+      cases.slice(0, showCount).map((caseItem) => (
+        <li key={caseItem.caseId} className="mb-2">
           <span className="font-semibold text-blue-600">Case #{caseItem.caseId}</span>:{" "}
-          <span className="text-gray-700">{caseItem.title}</span>
+          <span className="text-gray-700">{caseItem.caseTitle}</span>
         </li>
       ));
 
     switch (card) {
       case "total-cases":
         return (
-          <>
+          <div className="p-4">
             <ul className="list-disc ml-5 space-y-2 text-gray-800">
-              {stats.totalCasesDetails && stats.totalCasesDetails.length > 0 ? (
+              {stats.totalCasesDetails.length > 0 ? (
                 casesToShow(stats.totalCasesDetails)
               ) : (
                 <p className="text-gray-500">No total cases found.</p>
               )}
             </ul>
-            {stats.totalCasesDetails && stats.totalCasesDetails.length > showCount && (
+            {stats.totalCasesDetails.length > showCount && (
               <button
                 className="text-blue-600 mt-2 underline hover:text-blue-700 transition-colors"
-                onClick={() => setShowCount(showCount + 5)}
+                onClick={() => setShowCount(prev => prev + 5)}
               >
                 Show More
               </button>
             )}
-          </>
+          </div>
         );
+        
       case "pending-cases":
         return (
           <>
@@ -411,8 +418,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-col -mx-2 md:grid md:grid-cols-4 gap-8">
-            <div className="bg-white -mx-3 -px-4 rounded-lg shadow-md -md:mx-4">
-
+              <div className="bg-white -mx-3 -px-4 rounded-lg shadow-md -md:mx-4">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
@@ -452,14 +458,14 @@ export default function Dashboard() {
                                 className="bg-blue-500 hover:bg-blue-600 text-white px-2 -py-2 rounded-lg text-sm md:px-2 "
                               >
                                 <Edit className="w-4 h-4 " />
-                                <span className="hidden md:inline ml-2 ">Edit</span> {/* Reduced margin and hidden text on desktop */}
+                                <span className="hidden md:inline ml-2 ">Edit</span>
                               </Button>
                               <Button
                                 onClick={() => setEventToDelete(event.eventId)}
                                 className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded-lg text-sm md:px-2 md:py-0"
                               >
                                 <Trash className="w-4 h-4" />
-                                <span className="hidden md:inline ml-1">Delete</span> {/* Reduced margin and hidden text on desktop */}
+                                <span className="hidden md:inline ml-1">Delete</span>
                               </Button>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -649,7 +655,7 @@ export default function Dashboard() {
             message="Are you sure you want to delete this event?"
             onConfirm={handleDeleteEvent}
             onCancel={() => setEventToDelete(null)}
-          />    
+          />
         )}
       </AnimatePresence>
     </div>
