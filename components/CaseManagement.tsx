@@ -51,6 +51,7 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
   const [isAddCaseModalOpen, setIsAddCaseModalOpen] = useState(false);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [deadlineRange, setDeadlineRange] = useState<DateRange | undefined>();
+  const [lawyerId, setLawyerId] = useState<string>("12345"); // Default lawyer ID
 
   useEffect(() => {
     const loadCases = async () => {
@@ -77,9 +78,26 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
     toast.success(case_?.isPinned ? "Case unpinned!" : "Case pinned!");
   };
 
-  const handleDeleteCase = (caseId: number) => {
-    setCases(prev => prev.filter(c => c.id !== caseId));
-    toast.success("Case deleted successfully!");
+  const handleDeleteCase = async (caseId: number) => {
+    try {
+      const response = await fetch(
+        `https://dummy-backend-15jt.onrender.com/delete/case/?lawyerId=${lawyerId}&caseId=${caseId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Remove the case from the state
+      setCases(prev => prev.filter(c => c.id !== caseId));
+      toast.success("Case deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting case:", error);
+      toast.error("Failed to delete case. Please try again.");
+    }
   };
 
   const handleEditCase = (caseId: number) => {
