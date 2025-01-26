@@ -10,12 +10,12 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area"; // Import ScrollArea
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlusCircle, Star, StarOff, Search, Edit, Trash2, Plus, Filter, X } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 import { Input } from "@/components/ui/input";
 import AddNewCaseModal from "@/components/AddNewCase";
-import { fetchCases } from "@/lib/api/cases";
+import { fetchCases, deleteCase } from "@/lib/api/cases";
 import { Badge } from "@/components/ui/badge";
 import { format, isWithinInterval } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
+import { CustomModal } from "@/components/CustomModal"; // Import the custom modal
 
 interface Case {
   id: number;
@@ -51,8 +52,10 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
   const [isAddCaseModalOpen, setIsAddCaseModalOpen] = useState(false);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [deadlineRange, setDeadlineRange] = useState<DateRange | undefined>();
-  const [lawyerId, setLawyerId] = useState<string>("12345"); // Default lawyer ID
+  const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false); // State for delete confirmation modal
+  const [caseToDelete, setCaseToDelete] = useState<number | null>(null); // Store the case ID to delete
 
+  // Fetch cases on component mount
   useEffect(() => {
     const loadCases = async () => {
       try {
@@ -68,6 +71,7 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
     loadCases();
   }, []);
 
+  // Handle pinning/unpinning a case
   const handlePinCase = (caseId: number) => {
     setCases(prevCases =>
       prevCases.map(c =>
@@ -78,32 +82,40 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
     toast.success(case_?.isPinned ? "Case unpinned!" : "Case pinned!");
   };
 
+  // Handle deleting a case
   const handleDeleteCase = async (caseId: number) => {
     try {
-      const response = await fetch(
-        `https://dummy-backend-15jt.onrender.com/delete/case/?lawyerId=${lawyerId}&caseId=${caseId}`,
-        {
-          method: "DELETE",
-        }
-      );
+      // Call the deleteCase API function
+      const response = await deleteCase(12345, caseId); // Replace 12345 with the actual lawyerId if needed
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (response) {
+        // Update the local state to remove the deleted case
+        setCases(prev => prev.filter(c => c.id !== caseId));
+        toast.success("Case deleted successfully!");
+      } else {
+        toast.error("Failed to delete the case.");
       }
-
-      // Remove the case from the state
-      setCases(prev => prev.filter(c => c.id !== caseId));
-      toast.success("Case deleted successfully!");
     } catch (error) {
       console.error("Error deleting case:", error);
-      toast.error("Failed to delete case. Please try again.");
+      toast.error("An error occurred while deleting the case.");
+    } finally {
+      setIsDeleteConfirmationOpen(false); // Close the confirmation modal
+      setCaseToDelete(null); // Reset the case to delete
     }
   };
 
+  // Handle opening the delete confirmation modal
+  const openDeleteConfirmation = (caseId: number) => {
+    setCaseToDelete(caseId); // Set the case ID to delete
+    setIsDeleteConfirmationOpen(true); // Open the confirmation modal
+  };
+
+  // Handle editing a case
   const handleEditCase = (caseId: number) => {
     toast.success("Edit case functionality coming soon!");
   };
 
+  // Handle status filter changes
   const handleStatusFilter = (status: string) => {
     setSelectedStatuses(prev =>
       prev.includes(status)
@@ -112,11 +124,13 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
     );
   };
 
+  // Clear all filters
   const clearFilters = () => {
     setSelectedStatuses([]);
     setDeadlineRange(undefined);
   };
 
+  // Filter cases based on search query, status, and deadline range
   const filteredCases = cases
     .filter(c => 
       c.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -199,7 +213,7 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-auto p-4" align="end">
-                  <ScrollArea className="h-[400px]"> {/* Add ScrollArea with fixed height */}
+                  <ScrollArea className="h-[400px]">
                     <div className="space-y-4">
                       {/* Header */}
                       <div className="flex justify-between items-center">
@@ -247,7 +261,7 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
                           mode="range"
                           selected={deadlineRange}
                           onSelect={setDeadlineRange}
-                          numberOfMonths={1} // Show two months for better range selection
+                          numberOfMonths={1}
                           className="rounded-md border"
                         />
                         {deadlineRange && (
@@ -387,7 +401,7 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteCase(case_.id);
+                        openDeleteConfirmation(case_.id); // Open the delete confirmation modal
                       }}
                       className="text-red-500 hover:bg-red-100 rounded-lg"
                     >
@@ -426,6 +440,19 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
           }}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <CustomModal
+        isOpen={isDeleteConfirmationOpen}
+        onClose={() => setIsDeleteConfirmationOpen(false)}
+        onConfirm={() => {
+          if (caseToDelete !== null) {
+            handleDeleteCase(caseToDelete);
+          }
+        }}
+        title="Confirm Deletion"
+        description="Are you sure you want to delete this case? This action is irreversible."
+      />
     </div>
   );
 }
