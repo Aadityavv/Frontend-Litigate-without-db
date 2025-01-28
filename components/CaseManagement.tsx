@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
-import { CustomModal } from "@/components/CustomModal"; // Import the custom modal
+import { CustomModal } from "@/components/CustomModal";
 
 interface Case {
   id: number;
@@ -52,14 +52,15 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
   const [isAddCaseModalOpen, setIsAddCaseModalOpen] = useState(false);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [deadlineRange, setDeadlineRange] = useState<DateRange | undefined>();
-  const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false); // State for delete confirmation modal
-  const [caseToDelete, setCaseToDelete] = useState<number | null>(null); // Store the case ID to delete
+  const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
+  const [caseToDelete, setCaseToDelete] = useState<number | null>(null);
 
   // Fetch cases on component mount
   useEffect(() => {
     const loadCases = async () => {
       try {
         const data: Case[] = await fetchCases();
+        console.log("Fetched cases:", data); // Log fetched data for debugging
         setCases(data.reverse());
       } catch (error) {
         console.error("Error fetching cases:", error);
@@ -85,11 +86,9 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
   // Handle deleting a case
   const handleDeleteCase = async (caseId: number) => {
     try {
-      // Call the deleteCase API function
       const response = await deleteCase(12345, caseId); // Replace 12345 with the actual lawyerId if needed
 
       if (response) {
-        // Update the local state to remove the deleted case
         setCases(prev => prev.filter(c => c.id !== caseId));
         toast.success("Case deleted successfully!");
       } else {
@@ -99,15 +98,15 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
       console.error("Error deleting case:", error);
       toast.error("An error occurred while deleting the case.");
     } finally {
-      setIsDeleteConfirmationOpen(false); // Close the confirmation modal
-      setCaseToDelete(null); // Reset the case to delete
+      setIsDeleteConfirmationOpen(false);
+      setCaseToDelete(null);
     }
   };
 
   // Handle opening the delete confirmation modal
   const openDeleteConfirmation = (caseId: number) => {
-    setCaseToDelete(caseId); // Set the case ID to delete
-    setIsDeleteConfirmationOpen(true); // Open the confirmation modal
+    setCaseToDelete(caseId);
+    setIsDeleteConfirmationOpen(true);
   };
 
   // Handle editing a case
@@ -132,15 +131,18 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
 
   // Filter cases based on search query, status, and deadline range
   const filteredCases = cases
-    .filter(c => 
-      c.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      (selectedStatuses.length === 0 || selectedStatuses.includes(c.status)) &&
-      (!deadlineRange?.from || !deadlineRange?.to || 
-        isWithinInterval(new Date(c.deadline), {
-          start: deadlineRange.from,
-          end: deadlineRange.to,
-        }))
-    )
+    .filter(c => {
+      if (!c || !c.title) return false; // Skip cases with missing titles
+      return (
+        c.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        (selectedStatuses.length === 0 || selectedStatuses.includes(c.status)) &&
+        (!deadlineRange?.from || !deadlineRange?.to || 
+          isWithinInterval(new Date(c.deadline), {
+            start: deadlineRange.from,
+            end: deadlineRange.to,
+          }))
+      );
+    })
     .sort((a, b) => (a.isPinned === b.isPinned ? 0 : a.isPinned ? -1 : 1));
 
   const activeFilterCount = 
@@ -401,7 +403,7 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        openDeleteConfirmation(case_.id); // Open the delete confirmation modal
+                        openDeleteConfirmation(case_.id);
                       }}
                       className="text-red-500 hover:bg-red-100 rounded-lg"
                     >
@@ -431,15 +433,34 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
       </div>
 
       {/* Add New Case Modal */}
-      {isAddCaseModalOpen && (
-        <AddNewCaseModal
-          onClose={() => setIsAddCaseModalOpen(false)}
-          onAddCase={(newCase) => {
-            setCases(prev => [newCase, ...prev]);
-            toast.success("New case added!");
-          }}
-        />
-      )}
+{isAddCaseModalOpen && (
+  <AddNewCaseModal
+    onClose={() => setIsAddCaseModalOpen(false)}
+    onAddCase={(newCase) => {
+      console.log("New Case Data from API:", newCase); // Log the newCase object
+    
+      // Map the newCase object to the expected fields
+      const mappedCase = {
+        id: newCase.caseId, // Use newCase.caseId directly
+        title: newCase.caseTitle,
+        status: newCase.status,
+        deadline: newCase.dateOfFile || "No deadline",
+        isPinned: false,
+      };
+    
+      // Validate required fields
+      if (mappedCase.title && mappedCase.id && mappedCase.status) {
+        // Add the new case to the state
+        setCases((prev) => [mappedCase, ...prev]);
+        toast.success("New case added successfully!");
+      } else {
+        // Show error if required fields are missing
+        console.error("Missing required fields in new case:", newCase);
+        toast.error("Failed to add case. Required fields are missing.");
+      }
+    }}
+  />
+)}
 
       {/* Delete Confirmation Modal */}
       <CustomModal

@@ -47,6 +47,7 @@ export default function Dashboard() {
   const [isAddEventModalOpen, setIsAddEventModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any | null>(null);
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
+  const [caseToDelete, setCaseToDelete] = useState<string | null>(null);
   const [lawyerId, setLawyerId] = useState<string>("12345");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -172,7 +173,6 @@ export default function Dashboard() {
     if (selectedDate) fetchEvents();
   }, [selectedDate, lawyerId]);
 
-
   // Add Event Handler
   const handleAddEvent = async (eventData: any) => {
     setIsLoading(true);
@@ -229,6 +229,43 @@ export default function Dashboard() {
       toast.error("Failed to delete event. Please try again.");
     } finally {
       setEventToDelete(null);
+      setIsLoading(false);
+    }
+  };
+
+  // Delete Case Handler
+  const handleDeleteCase = async () => {
+    if (!caseToDelete) {
+      toast.error("Case ID is missing.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `https://dummy-backend-15jt.onrender.com/delete/case/?lawyerId=${lawyerId}&caseId=${caseToDelete}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Remove the case from the state
+      setStats(prevStats => ({
+        ...prevStats,
+        totalCases: prevStats.totalCases - 1,
+        totalCasesDetails: prevStats.totalCasesDetails.filter(caseItem => caseItem.caseId !== caseToDelete),
+      }));
+
+      toast.success("Case deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting case:", error);
+      toast.error("Failed to delete case. Please try again.");
+    } finally {
+      setCaseToDelete(null);
       setIsLoading(false);
     }
   };
@@ -290,9 +327,18 @@ export default function Dashboard() {
   const getSampleData = (card: string) => {
     const casesToShow = (cases: Array<{ caseId: string; caseTitle: string }>) =>
       cases.slice(0, showCount).map((caseItem) => (
-        <li key={caseItem.caseId} className="mb-2">
-          <span className="font-semibold text-blue-600">Case #{caseItem.caseId}</span>:{" "}
-          <span className="text-gray-700">{caseItem.caseTitle}</span>
+        <li key={caseItem.caseId} className="mb-2 flex justify-between items-center">
+          <div>
+            <span className="font-semibold text-blue-600">Case #{caseItem.caseId}</span>:{" "}
+            <span className="text-gray-700">{caseItem.caseTitle}</span>
+          </div>
+          <Button
+            onClick={() => setCaseToDelete(caseItem.caseId)}
+            className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded-lg text-sm"
+          >
+            <Trash className="w-4 h-4" />
+            <span className="hidden md:inline ml-1">Delete</span>
+          </Button>
         </li>
       ));
 
@@ -317,7 +363,6 @@ export default function Dashboard() {
             )}
           </div>
         );
-        
       case "pending-cases":
         return (
           <>
@@ -655,6 +700,13 @@ export default function Dashboard() {
             message="Are you sure you want to delete this event?"
             onConfirm={handleDeleteEvent}
             onCancel={() => setEventToDelete(null)}
+          />
+        )}
+        {caseToDelete && (
+          <ConfirmDialog
+            message="Are you sure you want to delete this case?"
+            onConfirm={handleDeleteCase}
+            onCancel={() => setCaseToDelete(null)}
           />
         )}
       </AnimatePresence>

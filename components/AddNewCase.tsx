@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "react-toastify";
 
 interface AddNewCaseModalProps {
   onClose: () => void;
@@ -25,7 +26,7 @@ export default function AddNewCaseModal({ onClose, onAddCase }: AddNewCaseModalP
   const [eventType, setEventType] = useState("Hearing");
   const [partyName, setPartyName] = useState("");
   const [partyAddress, setPartyAddress] = useState("");
-  const [partyEmail, setPartyEmail] = useState("");
+  // const [partyEmail, setPartyEmail] = useState("");
   const [partyContact, setPartyContact] = useState("");
   const [caseDesc, setCaseDesc] = useState("");
   const [notes, setNotes] = useState("");
@@ -47,10 +48,10 @@ export default function AddNewCaseModal({ onClose, onAddCase }: AddNewCaseModalP
     if (!partyAddress) {
       alert("Client Name is required.");
       return false;
-    }
-    if (!partyEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(partyEmail)) {
-      alert("A valid Contact Email is required.");
-      return false;
+    // }
+    // if (!partyEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(partyEmail)) {
+    //   alert("A valid Contact Email is required.");
+    //   return false;
     }
     if (!partyContact || !/^\d{10}$/.test(partyContact)) {
       alert("A valid 10-digit Contact Phone number is required.");
@@ -65,12 +66,11 @@ export default function AddNewCaseModal({ onClose, onAddCase }: AddNewCaseModalP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     if (!validateForm()) return;
-
+  
     const newCase = {
       lawyerId,
-      // lawyerName,
       caseId,
       caseTitle,
       caseDesc,
@@ -79,37 +79,38 @@ export default function AddNewCaseModal({ onClose, onAddCase }: AddNewCaseModalP
       judgeAssigned,
       sectionOrAct,
       status,
-      bookmark: false, // Default value as per API response
+      bookmark: false,
       partyName,
-      partyType: "Organization", // Ensure this value is sent
+      partyType: "Organization",
       partyRole,
-      contact: partyContact, // Ensure correct field names
+      contact: partyContact,
       address: partyAddress,
-      documentType: "Contracts", // Sample default, should be dynamic
-      documentDesc: notes, // Mapping notes to documentDesc
+      documentType: "Contracts",
+      documentDesc: notes,
     };
-
-  console.log("Sending request with payload:", JSON.stringify(newCase, null, 2)); // Log before sending
-
+  
+    console.log("Sending request with payload:", JSON.stringify(newCase, null, 2));
+  
     try {
-      const response = await fetch(`https://cms-production-3675.up.railway.app/post/new/case`,{
+      const response = await fetch(`https://cms-production-3675.up.railway.app/post/new/case`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(newCase),
       });
-
+  
       if (!response.ok) {
         throw new Error(`HTTP error: ${response.status}`);
       }
-
+  
       const result = await response.json();
       console.log("Case added successfully:", result);
-      alert("Case added successfully!");
-
-      onAddCase(result.case); // Notify the parent component with the new case
-      onClose(); // Close the modal
+      toast.success("Case added successfully!");
+  
+      // Pass the newCase object directly to onAddCase
+      onAddCase(newCase);
+      onClose();
     } catch (error) {
       console.error("Error adding case:", error);
       alert("Failed to add case. Please try again.");
@@ -331,7 +332,7 @@ export default function AddNewCaseModal({ onClose, onAddCase }: AddNewCaseModalP
                   />
                 </div>
 
-                <div>
+                {/* <div>
                   <label
                     htmlFor="partyEmail"
                     className="block text-sm font-medium text-gray-700"
@@ -346,7 +347,7 @@ export default function AddNewCaseModal({ onClose, onAddCase }: AddNewCaseModalP
                     required
                     className="text-sm"
                   />
-                </div>
+                </div> */}
                 <div>
                   <label
                     htmlFor="partyContact"
