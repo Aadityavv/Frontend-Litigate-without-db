@@ -1,16 +1,10 @@
-<<<<<<< HEAD
-# Litigate IQ Frontend (Updated Version)
-
-Welcome to the **Updated Litigate IQ Frontend** repository! This project is built using **Next.js** and is deployed on **Vercel**.
-=======
 # Litigate IQ Frontend
 
 Welcome to the **Litigate IQ Frontend** repository! This project is built using **Next.js** and is deployed on **Vercel**.
->>>>>>> c45762e4ff7d89a309b65196318df1579fab0b55
 
 ## 🚀 Live Website
 Access the deployed application here:  
-🔗 [Litigate IQ Frontend](https://frontend-litigate-without-db.vercel.app/)
+🔗 [Litigate IQ](https://frontend-litigate-without-db.vercel.app/)
 
 ## 🛠️ Getting Started
 
@@ -24,7 +18,6 @@ Clone the repository and install dependencies:
 
 ```bash
 # Clone the repository
-<<<<<<< HEAD
 git clone https://github.com/Aadityavv/updated-litigate.git
 
 # Navigate to the project directory
@@ -34,7 +27,6 @@ git clone https://github.com/Aadityavv/Frontend-Litigate-without-db.git
 
 # Navigate to the project directory
 cd Frontend-Litigate-without-db
->>>>>>> c45762e4ff7d89a309b65196318df1579fab0b55
 
 # Install dependencies
 npm install  # or yarn install, or pnpm install
@@ -51,7 +43,6 @@ Once started, open [http://localhost:3000](http://localhost:3000) in your browse
 
 ## 🏗️ Project Structure
 ```
-<<<<<<< HEAD
 updated-litigate/
 ├── public/              # Static assets
 ├── pages/               # Next.js pages
@@ -66,7 +57,6 @@ Frontend-Litigate-without-db/
 │   ├── components/      # Reusable components
 │   ├── styles/          # Global styles
 │   ├── utils/           # Utility functions
->>>>>>> c45762e4ff7d89a309b65196318df1579fab0b55
 ├── .env.example         # Example environment file
 ├── package.json         # Project metadata & dependencies
 └── README.md            # Project documentation
@@ -100,5 +90,5 @@ If you'd like to contribute:
 This project is licensed under the **MIT License**.
 
 ---
-**Maintained by [Aadityavv](https://github.com/Aadityavv)**
+**Maintained by [Aadityavv](https://github.com/Aadityavv) and [Kanikaarawat](https://github.com/kanikaarawat)**
 
