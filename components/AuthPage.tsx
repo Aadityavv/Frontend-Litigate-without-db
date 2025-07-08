@@ -10,7 +10,7 @@ import { signUp, signIn } from "@/lib/api/auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export default function AuthPage({ onLogin }: { onLogin: () => void }) {
+export default function AuthPage({ onLogin }: { onLogin: (user: any) => void }) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -45,8 +45,13 @@ export default function AuthPage({ onLogin }: { onLogin: () => void }) {
       if (response.error) {
         toast.error(response.error);
       } else {
+        // Store token and user info in localStorage
+        if (response.token && response.user) {
+          localStorage.setItem('token', response.token);
+          localStorage.setItem('user', JSON.stringify(response.user));
+        }
         toast.success(`${isSignUp ? "Sign-up" : "Login"} successful!`);
-        onLogin();
+        onLogin(response.user);
       }
     } catch (error) {
       console.error("Authentication error:", error);

@@ -51,6 +51,19 @@ interface CaseDetailViewProps {
   caseId: string; // Pass `caseId` directly instead of full details
 }
 
+function getAuthHeaders() {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+function getLawyerId() {
+  if (typeof window !== 'undefined') {
+    const user = localStorage.getItem('user');
+    if (user) return JSON.parse(user).id;
+  }
+  return '';
+}
+
 export default function CaseDetailView({ caseId }: CaseDetailViewProps) {
   const [caseDetails, setCaseDetails] = useState<CaseDetails | null>(null);
   const [notes, setNotes] = useState("");
@@ -65,13 +78,15 @@ export default function CaseDetailView({ caseId }: CaseDetailViewProps) {
       }
 
       try {
-        const response = await fetch(`https://cms-production-3675.up.railway.app/caseDetails/?lawyerId=12345&caseId=${caseId}`);
+        const response = await fetch(`http://localhost:5000/caseDetails/?lawyerId=${getLawyerId()}&caseId=${caseId}`, {
+          headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : '' },
+        });
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
         console.log("Fetched Case Details:", data); // Debugging log
-        setCaseDetails(data.message);
+        setCaseDetails(data);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching case details:", error);

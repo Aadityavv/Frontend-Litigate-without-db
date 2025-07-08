@@ -63,11 +63,11 @@ export default function CommunicationModule() {
     const fetchData = async () => {
       try {
         const [personalRes, groupRes, tasksRes, filesRes, notesRes] = await Promise.all([
-          fetch(`https://dummy-backend-15jt.onrender.com/communication/conversations/personal`),
-          fetch(`https://dummy-backend-15jt.onrender.com/communication/conversations/group`),
-          fetch(`https://dummy-backend-15jt.onrender.com/communication/tasks`),
-          fetch(`https://dummy-backend-15jt.onrender.com/communication/files`),
-          fetch(`https://dummy-backend-15jt.onrender.com/communication/notes`),
+          fetch(`http://localhost:5000/communication/conversations/personal`, { headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : "" } }),
+          fetch(`http://localhost:5000/communication/conversations/group`, { headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : "" } }),
+          fetch(`http://localhost:5000/communication/tasks`, { headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : "" } }),
+          fetch(`http://localhost:5000/communication/files`, { headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : "" } }),
+          fetch(`http://localhost:5000/communication/notes`, { headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : "" } }),
         ]);
 
         setMessages((await personalRes.json()) || []);

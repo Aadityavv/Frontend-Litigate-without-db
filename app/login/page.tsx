@@ -1,45 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import AuthPage from "@/components/AuthPage";
+import BackButton from "@/components/BackButton";
 
 const LoginPage = () => {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const router = useRouter();
 
-    const handleLogin = async (e:React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const response = await fetch(`https://dummy-backend-15jt.onrender.com/auth/login`, {
-            method: "POST",
-            body: JSON.stringify({ email, password }),
-            headers: { "Content-Type": "application/json" },
-        });
-        const data = await response.json();
-        if (data.success) {
-            alert("Login successful!");
-        } else {
-            alert("Invalid credentials.");
-        }
+    const handleLogin = (user: any) => {
+        // User and token are already stored in localStorage by AuthPage
+        router.push("/");
     };
 
     return (
-        <form onSubmit={handleLogin}>
-            <label>Email:</label>
-            <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-            />
-            <label>Password:</label>
-            <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-            />
-            <Button type="submit">Login</Button>
-        </form>
+      <>
+        <BackButton label="Back" />
+        <AuthPage onLogin={handleLogin} />
+      </>
     );
 };
 

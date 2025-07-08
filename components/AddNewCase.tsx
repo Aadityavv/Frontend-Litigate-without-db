@@ -13,7 +13,7 @@ interface AddNewCaseModalProps {
 }
 
 export default function AddNewCaseModal({ onClose, onAddCase }: AddNewCaseModalProps) {
-  const [lawyerId, setLawyerId] = useState("12345");
+  const [lawyerId, setLawyerId] = useState(getLawyerId());
   // const [lawyerName, setLawyerName] = useState("David Smith");
   const [caseTitle, setCaseTitle] = useState("");
   const [caseId, setCaseId] = useState("");
@@ -64,6 +64,19 @@ export default function AddNewCaseModal({ onClose, onAddCase }: AddNewCaseModalP
     return true;
   };
 
+  function getAuthHeaders() {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    return { Authorization: token ? `Bearer ${token}` : "" };
+  }
+
+  function getLawyerId() {
+    if (typeof window !== 'undefined') {
+      const user = localStorage.getItem('user');
+      if (user) return JSON.parse(user).id;
+    }
+    return '';
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
   
@@ -92,11 +105,9 @@ export default function AddNewCaseModal({ onClose, onAddCase }: AddNewCaseModalP
     console.log("Sending request with payload:", JSON.stringify(newCase, null, 2));
   
     try {
-      const response = await fetch(`https://cms-production-3675.up.railway.app/post/new/case`, {
+      const response = await fetch(`http://localhost:5000/post/new/case`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
         body: JSON.stringify(newCase),
       });
   

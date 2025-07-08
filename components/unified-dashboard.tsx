@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const sidebarItems = [
   { name: "Dashboard", icon: <Grid className="h-5 w-5" />, section: "dashboard" },
@@ -32,11 +33,16 @@ const sidebarItems = [
 ];
 
 export default function UnifiedDashboardComponent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [activeSection, setActiveSection] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedCaseId, setSelectedCaseId] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Get section and card from URL, fallback to 'dashboard'
+  const sectionFromUrl = searchParams.get("section") || "dashboard";
+  const cardFromUrl = searchParams.get("card") || null;
 
   useEffect(() => {
     const checkMobile = () => {
@@ -61,7 +67,7 @@ export default function UnifiedDashboardComponent() {
   };
 
   const renderContent = () => {
-    switch (activeSection) {
+    switch (sectionFromUrl) {
       case "dashboard":
         return <Dashboard />;
       case "case-management":
@@ -69,7 +75,10 @@ export default function UnifiedDashboardComponent() {
           <CaseManagement
             onCaseSelect={(id: number) => {
               setSelectedCaseId(id);
-              setActiveSection("case-detail");
+              // Update URL to case-detail
+              const params = new URLSearchParams(Array.from(searchParams.entries()));
+              params.set("section", "case-detail");
+              router.push(`?${params.toString()}`);
             }}
           />
         );
@@ -88,6 +97,13 @@ export default function UnifiedDashboardComponent() {
       default:
         return <div>Welcome to LitigateIQ</div>;
     }
+  };
+
+  const handleSidebarClick = (section: string) => {
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    params.set("section", section);
+    router.push(`?${params.toString()}`);
+    if (isMobile) setIsSidebarOpen(false);
   };
 
   if (!isAuthenticated) {
@@ -161,13 +177,10 @@ export default function UnifiedDashboardComponent() {
               whileTap={{ scale: 0.98 }}
             >
               <Button
-                onClick={() => {
-                  setActiveSection(item.section);
-                  isMobile && setIsSidebarOpen(false);
-                }}
+                onClick={() => handleSidebarClick(item.section)}
                 className={cn(
                   "w-full h-12 justify-start space-x-3 rounded-lg font-medium transition-colors",
-                  activeSection === item.section
+                  sectionFromUrl === item.section
                     ? "bg-blue-600/90 hover:bg-blue-600 text-white"
                     : "bg-transparent hover:bg-slate-700/30 text-slate-300"
                 )}
@@ -234,13 +247,13 @@ export default function UnifiedDashboardComponent() {
             )}
             <AnimatePresence mode="wait">
               <motion.h2
-                key={activeSection}
+                key={sectionFromUrl}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
                 className="text-2xl font-bold text-slate-800"
               >
-                {pageTitles[activeSection as keyof typeof pageTitles]}
+                {pageTitles[sectionFromUrl as keyof typeof pageTitles]}
               </motion.h2>
             </AnimatePresence>
           </div>
@@ -253,7 +266,7 @@ export default function UnifiedDashboardComponent() {
         <main className="flex-1 overflow-y-auto p-6 bg-slate-50 w-full">
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeSection}
+              key={sectionFromUrl}
               initial="hidden"
               animate="visible"
               exit="exit"

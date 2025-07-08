@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import CaseDetailView from "@/components/CaseDetailView";
 import { useState, useEffect } from "react";
 import { fetchCaseById } from "@/lib/api/cases";
+import BackButton from "@/components/BackButton";
 
 interface CaseDetails {
   caseId: string;
@@ -49,5 +50,10 @@ export default function CaseDetailPage() {
 
   if (!caseDetails) return <p>Loading...</p>;
 
-  return <CaseDetailView caseId={params.id as string} />;
+  return (
+    <>
+      <BackButton label="Back" />
+      <CaseDetailView caseId={params.id as string} />
+    </>
+  );
 }

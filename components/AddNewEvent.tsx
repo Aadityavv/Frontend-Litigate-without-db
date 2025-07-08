@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner"; // For better notifications
+import { fetchCases } from "@/lib/api/cases";
 
 interface AddNewEventModalProps {
   onClose: () => void;
@@ -15,20 +16,38 @@ interface AddNewEventModalProps {
   existingEvent?: any; // Optional for editing
 }
 
+function getLawyerId() {
+  if (typeof window !== 'undefined') {
+    const user = localStorage.getItem('user');
+    if (user) return JSON.parse(user).id;
+  }
+  return '';
+}
+
 export default function AddNewEventModal({ onClose, onAddEvent, onEditEvent, existingEvent }: AddNewEventModalProps) {
   // State variables
   const [caseId, setCaseId] = useState(existingEvent?.caseId || "");
-  const [lawyerId, setLawyerId] = useState(existingEvent?.lawyerId || "12345"); // Static for now
+  const [lawyerId, setLawyerId] = useState(existingEvent?.lawyerId || getLawyerId());
   const [eventDate, setEventDate] = useState(existingEvent?.eventDate || "");
   const [eventType, setEventType] = useState(existingEvent?.eventType || "Hearing");
   const [eventOutcome, setEventOutcome] = useState(existingEvent?.eventOutcome || "");
   const [eventDesc, setEventDesc] = useState(existingEvent?.eventDesc || "");
   const [eventLocation, setEventLocation] = useState(existingEvent?.eventLocation || "");
+  const [title, setTitle] = useState(existingEvent?.title || "");
   const [isSubmitting, setIsSubmitting] = useState(false); // Loading state
+  const [cases, setCases] = useState<{ id: string, title: string }[]>([]);
+
+  useEffect(() => {
+    const loadCases = async () => {
+      const allCases = await fetchCases();
+      setCases(allCases);
+    };
+    loadCases();
+  }, []);
 
   // Validate form fields
   const validateForm = () => {
-    if (!caseId || !eventDate || !eventType || !eventDesc || !eventLocation) {
+    if (!caseId || !eventDate || !eventType || !eventDesc || !eventLocation || !title) {
       toast.error("Please fill out all required fields.");
       return false;
     }
@@ -38,41 +57,43 @@ export default function AddNewEventModal({ onClose, onAddEvent, onEditEvent, exi
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) return;
-
     setIsSubmitting(true);
 
-    // Prepare the event data
     const eventDetails = {
       caseId,
       lawyerId,
-      eventDate: new Date(eventDate).toISOString(), // Convert to ISO format
+      eventDate: new Date(eventDate).toISOString(),
       eventType,
       eventOutcome,
       eventDesc,
       eventLocation,
+      title,
     };
 
     try {
-      const response = await fetch("https://dashboardservice-bg5v.onrender.com/post/createEvent", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(eventDetails),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
+      let response, result;
+      if (existingEvent && existingEvent._id) {
+        // EDIT: PUT
+        response = await fetch(`http://localhost:5000/api/events/${existingEvent._id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...eventDetails, _id: existingEvent._id }),
+        });
+      } else {
+        // CREATE: POST
+        response = await fetch("http://localhost:5000/api/events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(eventDetails),
+        });
       }
 
-      const result = await response.json();
-      console.log("Event added successfully:", result);
-      toast.success("Event added successfully!");
-
-      onAddEvent(result.event); // Notify the parent component
-      onClose(); // Close the modal
+      if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+      result = await response.json();
+      toast.success(existingEvent ? "Event updated successfully!" : "Event added successfully!");
+      onAddEvent(result); // Always call onAddEvent (Dashboard expects this)
+      onClose();
     } catch (error) {
       console.error("Error saving event:", error);
       toast.error("Failed to save event. Please try again.");
@@ -101,16 +122,20 @@ export default function AddNewEventModal({ onClose, onAddEvent, onEditEvent, exi
           {/* Case ID */}
           <div>
             <label htmlFor="caseId" className="block text-sm font-medium text-gray-700">
-              Case ID
+              Case
             </label>
-            <Input
-              type="text"
-              id="caseId"
-              value={caseId}
-              onChange={(e) => setCaseId(e.target.value)}
-              required
-              className="mt-1"
-            />
+            <Select value={caseId} onValueChange={setCaseId} required>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select a case" />
+              </SelectTrigger>
+              <SelectContent>
+                {cases.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.id} - {c.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Event Date */}
@@ -185,6 +210,21 @@ export default function AddNewEventModal({ onClose, onAddEvent, onEditEvent, exi
               id="eventLocation"
               value={eventLocation}
               onChange={(e) => setEventLocation(e.target.value)}
+              required
+              className="mt-1"
+            />
+          </div>
+
+          {/* Event Title */}
+          <div>
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+              Event Title
+            </label>
+            <Input
+              type="text"
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               required
               className="mt-1"
             />

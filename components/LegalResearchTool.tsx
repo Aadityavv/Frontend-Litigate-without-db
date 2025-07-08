@@ -37,14 +37,17 @@ export default function LegalResearchTool() {
     visible: { opacity: 1, y: 0 },
   };
 
+  function getAuthHeaders() {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    return { Authorization: token ? `Bearer ${token}` : "" };
+  }
+
   const fetchResults = async () => {
     setLoading(true);
     try {
-      const response = await fetch("https://dummy-backend-15jt.onrender.com/research/legal", {
+      const response = await fetch("http://localhost:5000/research/legal", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: searchQuery,
           categories: selectedCategories,

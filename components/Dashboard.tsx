@@ -5,6 +5,9 @@ import { UserCircleIcon } from "@heroicons/react/24/solid";
 import AddNewEventModal from "@/components/AddNewEvent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { fetchStats, fetchStatDetails } from "@/lib/api/cases";
+// import BackButton from "@/components/BackButton";
 
 // UI Components
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,9 +24,15 @@ const LoadingSpinner = () => (
   </div>
 );
 
+function getAuthHeaders() {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  return { Authorization: token ? `Bearer ${token}` : "" };
+}
+
 export default function Dashboard() {
+  const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [lawyerName, setLawyerName] = useState("Aaditya Vijayvargiya");
+  const [lawyerName, setLawyerName] = useState("");
   const [events, setEvents] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [deadlines, setDeadlines] = useState<any[]>([]);
@@ -42,7 +51,6 @@ export default function Dashboard() {
     resolvedCasesDetails: [] as any[],
     upcomingDeadlineDetails: [] as any[],
   });
-  const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [showCount, setShowCount] = useState(5);
   const [isAddEventModalOpen, setIsAddEventModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any | null>(null);
@@ -50,57 +58,37 @@ export default function Dashboard() {
   const [caseToDelete, setCaseToDelete] = useState<string | null>(null);
   const [lawyerId, setLawyerId] = useState<string>("12345");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [statDetails, setStatDetails] = useState<any[]>([]);
 
-  // Fetch user details
   useEffect(() => {
-    const fetchUser = async () => {
+    // Check authentication
+    const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+    if (!userStr) {
+      router.push('/login');
+      return;
+    }
+    const user = JSON.parse(userStr);
+    setLawyerName(user.name || "");
+    setLawyerId(user.id || "12345");
+  }, []);
+
+  useEffect(() => {
+    const loadStats = async () => {
       setIsLoading(true);
-      try {
-        const response = await fetch(`https://dummy-backend-15jt.onrender.com/user`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        setLawyerName(data.name || lawyerName);
-        setLawyerId(data.lawyerId || "12345");
-      } catch (error) {
-        console.error("Error fetching user details:", error);
-        setLawyerName("Aaditya Vijayvargiya");
-        setLawyerId("12345");
-      } finally {
-        setIsLoading(false);
-      }
+      const statsData = await fetchStats();
+      if (statsData) setStats(prev => ({ ...prev, ...statsData }));
+      setIsLoading(false);
     };
-
-    const fetchStats = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(
-          `https://dashboardservice-bg5v.onrender.com/count/countCases?lawyerId=${lawyerId}`
-        );
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-
-        setStats(prev => ({
-          ...prev,
-          totalCases: data.totalCases,
-          pendingCases: data.pendingCases,
-          overduePendingCasesCount: data.overdueCases,
-          resolvedCases: data.resolvedCases,
-          upcomingDeadlines: data.upcomingDeadlines,
-        }));
-
-        setDeadlines(data.upcomingDeadlineDetails || []);
-      } catch (error) {
-        console.error("Error fetching stats:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    loadStats();
 
     const fetchNotifications = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`https://dummy-backend-15jt.onrender.com/dashboard/notifications`);
-        setNotifications(await response.json());
+        const response = await fetch(`http://localhost:5000/api/getNotifications/?lawyerId=${lawyerId}`, { headers: { ...getAuthHeaders() } });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        setNotifications(data.notifications || []);
       } catch (error) {
         console.error("Error fetching notifications:", error);
       } finally {
@@ -108,59 +96,28 @@ export default function Dashboard() {
       }
     };
 
-    fetchUser();
-    fetchStats();
     fetchNotifications();
-  }, [lawyerId]);
-
-  // Fetch total cases details
-  useEffect(() => {
-    const fetchTotalCasesDetails = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(
-          `https://dashboardservice-bg5v.onrender.com/totalcases/caseIdAndTitle?lawyerId=${lawyerId}`
-        );
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        
-        setStats(prev => ({
-          ...prev,
-          totalCasesDetails: data,
-          totalCases: data.length
-        }));
-      } catch (error) {
-        console.error("Error fetching total cases details:", error);
-        toast.error("Failed to fetch total cases details. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTotalCasesDetails();
   }, [lawyerId]);
 
   // Fetch events dynamically based on the selected date
   const fetchEvents = async () => {
     setIsLoading(true);
     try {
+      // Always use UTC start of day for date filtering
+      const dateStr = selectedDate
+        ? new Date(Date.UTC(
+            selectedDate.getFullYear(),
+            selectedDate.getMonth(),
+            selectedDate.getDate()
+          )).toISOString().split('T')[0]
+        : '';
       const response = await fetch(
-        `https://dashboardservice-bg5v.onrender.com/api/getEvents/?lawyerId=${lawyerId}&eventDate=${selectedDate}`
+        `http://localhost:5000/api/events?lawyerId=${lawyerId}&date=${dateStr}`,
+        { headers: { ...getAuthHeaders() } }
       );
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
       const data = await response.json();
-      const casesWithEvents = data.message.casesWithEventsAndParties || [];
-      const eventsArray = casesWithEvents.flatMap((caseData: any) =>
-        caseData.events.map((event: any) => ({
-          ...event,
-          caseId: caseData.caseId,
-          caseTitle: caseData.caseTitle,
-          partyName: caseData.partyName,
-        }))
-      );
-
-      setEvents(eventsArray);
+      setEvents(data.events || []);
     } catch (error) {
       console.error("Error fetching events:", error);
       toast.error("Failed to fetch events. Please try again.");
@@ -177,18 +134,17 @@ export default function Dashboard() {
   const handleAddEvent = async (eventData: any) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`https://dashboardservice-bg5v.onrender.com/post/createEvent`, {
+      const response = await fetch(`http://localhost:5000/api/events`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...getAuthHeaders(),
         },
         body: JSON.stringify({ ...eventData, lawyerId }),
       });
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
       const newEvent = await response.json();
       setEvents((prevEvents) => [...prevEvents, newEvent]);
       setIsAddEventModalOpen(false);
@@ -207,22 +163,19 @@ export default function Dashboard() {
       toast.error("Event ID is missing.");
       return;
     }
-
     setIsLoading(true);
     try {
-      const caseId = events.find((event) => event.eventId === eventToDelete)?.caseId || "defaultCaseId";
       const response = await fetch(
-        `https://dashboardservice-bg5v.onrender.com/delete/deleteEvent?lawyerId=${lawyerId}&caseId=${caseId}&eventId=${eventToDelete}`,
+        `http://localhost:5000/api/events/${eventToDelete}`,
         {
           method: "DELETE",
+          headers: { ...getAuthHeaders() },
         }
       );
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      setEvents((prevEvents) => prevEvents.filter((event) => event.eventId !== eventToDelete));
+      setEvents((prevEvents) => prevEvents.filter((event) => event._id !== eventToDelete));
       toast.success("Event deleted successfully!");
     } catch (error) {
       console.error("Error deleting event:", error);
@@ -243,9 +196,10 @@ export default function Dashboard() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `https://dummy-backend-15jt.onrender.com/delete/case/?lawyerId=${lawyerId}&caseId=${caseToDelete}`,
+        `http://localhost:5000/delete/case/?lawyerId=${lawyerId}&caseId=${caseToDelete}`,
         {
           method: "DELETE",
+          headers: { ...getAuthHeaders() },
         }
       );
 
@@ -279,22 +233,21 @@ export default function Dashboard() {
   const handleUpdateEvent = async (updatedEvent: any) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`https://dashboardservice-bg5v.onrender.com/put/updateEvent`, {
+      const response = await fetch(`http://localhost:5000/api/events/${updatedEvent._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          ...getAuthHeaders(),
         },
-        body: JSON.stringify({ ...updatedEvent, lawyerId }),
+        body: JSON.stringify(updatedEvent),
       });
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
       const updatedEventData = await response.json();
       setEvents((prevEvents) =>
         prevEvents.map((event) =>
-          event.id === updatedEventData.id ? updatedEventData : event
+          event._id === updatedEventData._id ? updatedEventData : event
         )
       );
       setEditingEvent(null);
@@ -306,6 +259,28 @@ export default function Dashboard() {
       setIsLoading(false);
     }
   };
+
+  // Stack navigation state
+  const handleStatCardClick = async (stat: any) => {
+    setSelectedCard(stat.id);
+    setIsLoading(true);
+    let type = '';
+    if (stat.id === "total-cases") type = "total";
+    else if (stat.id === "pending-cases") type = "pending";
+    else if (stat.id === "resolved-cases") type = "resolved";
+    else if (stat.id === "upcoming-deadlines") type = "deadlines";
+    const details = await fetchStatDetails(type);
+    setStatDetails(details);
+    setIsLoading(false);
+  };
+
+  // Back navigation for stack
+  const handleBack = () => {
+    setSelectedCard(null);
+  };
+
+  // In the render, log selectedCard
+  console.log('Selected card:', selectedCard);
 
   // Get Card Title
   const getCardTitle = (card: string) => {
@@ -324,115 +299,26 @@ export default function Dashboard() {
   };
 
   // Get Sample Data for Cards
-  const getSampleData = (card: string) => {
-    const casesToShow = (cases: Array<{ caseId: string; caseTitle: string }>) =>
-      cases.slice(0, showCount).map((caseItem) => (
-        <li key={caseItem.caseId} className="mb-2 flex justify-between items-center">
-          <div>
-            <span className="font-semibold text-blue-600">Case #{caseItem.caseId}</span>:{" "}
-            <span className="text-gray-700">{caseItem.caseTitle}</span>
-          </div>
-          <Button
-            onClick={() => setCaseToDelete(caseItem.caseId)}
-            className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded-lg text-sm"
-          >
-            <Trash className="w-4 h-4" />
-            <span className="hidden md:inline ml-1">Delete</span>
-          </Button>
-        </li>
-      ));
-
-    switch (card) {
-      case "total-cases":
-        return (
-          <div className="p-4">
-            <ul className="list-disc ml-5 space-y-2 text-gray-800">
-              {stats.totalCasesDetails.length > 0 ? (
-                casesToShow(stats.totalCasesDetails)
-              ) : (
-                <p className="text-gray-500">No total cases found.</p>
-              )}
-            </ul>
-            {stats.totalCasesDetails.length > showCount && (
-              <button
-                className="text-blue-600 mt-2 underline hover:text-blue-700 transition-colors"
-                onClick={() => setShowCount(prev => prev + 5)}
-              >
-                Show More
-              </button>
-            )}
-          </div>
-        );
-      case "pending-cases":
-        return (
-          <>
-            <ul className="list-disc ml-5 space-y-2 text-gray-800">
-              {stats.pendingCasesDetails && stats.pendingCasesDetails.length > 0 ? (
-                casesToShow(stats.pendingCasesDetails)
-              ) : (
-                <p className="text-gray-500">No pending cases found.</p>
-              )}
-            </ul>
-            <p className="text-sm text-red-500 mt-5">
-              Overdue Pending Cases: {stats.overduePendingCasesCount}
-            </p>
-            {stats.pendingCasesDetails && stats.pendingCasesDetails.length > showCount && (
-              <button
-                className="text-blue-600 mt-2 underline hover:text-blue-700 transition-colors"
-                onClick={() => setShowCount(showCount + 5)}
-              >
-                Show More
-              </button>
-            )}
-          </>
-        );
-      case "resolved-cases":
-        return (
-          <>
-            <ul className="list-disc ml-5 space-y-2 text-gray-800">
-              {stats.resolvedCasesDetails && stats.resolvedCasesDetails.length > 0 ? (
-                casesToShow(stats.resolvedCasesDetails)
-              ) : (
-                <p className="text-gray-500">No resolved cases found.</p>
-              )}
-            </ul>
-            {stats.resolvedCasesDetails && stats.resolvedCasesDetails.length > showCount && (
-              <button
-                className="text-blue-600 mt-2 underline hover:text-blue-700 transition-colors"
-                onClick={() => setShowCount(showCount + 5)}
-              >
-                Show More
-              </button>
-            )}
-          </>
-        );
-      case "upcoming-deadlines":
-        return (
-          <>
-            <ul className="list-disc ml-5 space-y-2 text-gray-800">
-              {deadlines.length > 0 ? (
-                casesToShow(deadlines)
-              ) : (
-                <p className="text-gray-500">No upcoming deadlines found.</p>
-              )}
-            </ul>
-            {deadlines.length > showCount && (
-              <button
-                className="text-blue-600 mt-2 underline hover:text-blue-700 transition-colors"
-                onClick={() => setShowCount(showCount + 5)}
-              >
-                Show More
-              </button>
-            )}
-          </>
-        );
-      default:
-        return <p className="text-gray-500">No data available.</p>;
-    }
+  const getSampleData = () => {
+    if (isLoading) return <LoadingSpinner />;
+    if (!statDetails || statDetails.length === 0) return <p className="text-gray-500">No data found.</p>;
+    return (
+      <ul className="list-disc ml-5 space-y-2 text-gray-800">
+        {statDetails.map((caseItem) => (
+          <li key={caseItem.caseId} className="mb-2 flex justify-between items-center">
+            <div>
+              <span className="font-semibold text-blue-600">Case #{caseItem.caseId}</span>: {" "}
+              <span className="text-gray-700">{caseItem.caseTitle}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    );
   };
 
   return (
     <div className="space-y-8 py-4 px-2 bg-white min-h-screen">
+      {/* <BackButton label="Back" /> */}
       {/* Loading Spinner */}
       {isLoading && <LoadingSpinner />}
 
@@ -488,7 +374,7 @@ export default function Dashboard() {
                   {events.length > 0 ? (
                     events.map((event) => (
                       <motion.div
-                        key={event.eventId}
+                        key={event._id}
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3 }}
@@ -506,7 +392,7 @@ export default function Dashboard() {
                                 <span className="hidden md:inline ml-2 ">Edit</span>
                               </Button>
                               <Button
-                                onClick={() => setEventToDelete(event.eventId)}
+                                onClick={() => setEventToDelete(event._id)}
                                 className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded-lg text-sm md:px-2 md:py-0"
                               >
                                 <Trash className="w-4 h-4" />
@@ -515,7 +401,7 @@ export default function Dashboard() {
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                               <div>
-                                <p className="text-sm text-gray-600"><strong>Case Title:</strong> {event.caseTitle}</p>
+                                <p className="text-sm text-gray-600"><strong>Case Title:</strong> {event.title}</p>
                                 <p className="text-sm text-gray-600"><strong>Party Name:</strong> {event.partyName}</p>
                                 <p className="text-sm text-gray-600"><strong>Event Type:</strong> {event.eventType}</p>
                               </div>
@@ -523,7 +409,7 @@ export default function Dashboard() {
                                 <p className="text-sm text-gray-600"><strong>Description:</strong> {event.eventDesc}</p>
                                 <p className="text-sm text-gray-600"><strong>Location:</strong> {event.eventLocation}</p>
                                 <p className="text-sm text-gray-600">
-                                  <strong>Date & Time:</strong> {event.eventDate} at {event.eventTime}
+                                  <strong>Date & Time:</strong> {event.eventDate ? new Date(event.eventDate).toLocaleString() : ''}
                                 </p>
                               </div>
                             </div>
@@ -549,10 +435,10 @@ export default function Dashboard() {
         className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
       >
         {[
-          { id: "total-cases", title: "Total Cases", value: stats.totalCases, color: "blue" },
-          { id: "pending-cases", title: "Pending Cases", value: stats.pendingCases, color: "yellow" },
-          { id: "resolved-cases", title: "Resolved Cases", value: stats.resolvedCases, color: "green" },
-          { id: "upcoming-deadlines", title: "Upcoming Deadlines", value: stats.upcomingDeadlines, color: "red" },
+          { id: "total-cases", title: "Total Cases", value: stats.totalCases, color: "blue", status: "open" },
+          { id: "pending-cases", title: "Pending Cases", value: stats.pendingCases, color: "yellow", status: "pending" },
+          { id: "resolved-cases", title: "Resolved Cases", value: stats.resolvedCases, color: "green", status: "closed" },
+          { id: "upcoming-deadlines", title: "Upcoming Deadlines", value: stats.upcomingDeadlines, color: "red", status: "upcoming" },
         ].map((stat) => (
           <motion.div
             key={stat.id}
@@ -563,7 +449,7 @@ export default function Dashboard() {
               className={`shadow-md transition-transform bg-white cursor-pointer h-44 flex flex-col justify-between ${
                 selectedCard === stat.id ? `ring-2 ring-${stat.color}-500` : ""
               }`}
-              onClick={() => setSelectedCard(selectedCard === stat.id ? null : stat.id)}
+              onClick={() => handleStatCardClick(stat)}
             >
               <CardHeader className="p-4">
                 <CardTitle className="text-sm font-medium text-gray-700">
@@ -616,20 +502,6 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Display Sample Data Below the Card on Mobile */}
-            {selectedCard === stat.id && (
-              <div className="md:hidden mt-4">
-                <Card className="shadow-md">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-gray-800">
-                      {getCardTitle(selectedCard)}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>{getSampleData(selectedCard)}</CardContent>
-                </Card>
-              </div>
-            )}
           </motion.div>
         ))}
       </motion.div>
@@ -640,15 +512,18 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.6 }}
-          className="mt-6 hidden md:block"
+          className="mt-6"
         >
           <Card className="shadow-md">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-xl text-gray-800">
-                {getCardTitle(selectedCard)}
+                {getCardTitle(selectedCard ?? "")}
               </CardTitle>
+              <Button variant="outline" onClick={handleBack} className="ml-4">Back</Button>
             </CardHeader>
-            <CardContent>{getSampleData(selectedCard)}</CardContent>
+            <CardContent>
+              {getSampleData()}
+            </CardContent>
           </Card>
         </motion.div>
       )}
