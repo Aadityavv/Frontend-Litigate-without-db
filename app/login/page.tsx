@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import AuthPage from "@/components/AuthPage";
-import BackButton from "@/components/BackButton";
 
 const LoginPage = () => {
     const router = useRouter();
@@ -14,7 +13,6 @@ const LoginPage = () => {
 
     return (
       <>
-        <BackButton label="Back" />
         <AuthPage onLogin={handleLogin} />
       </>
     );

@@ -45,7 +45,7 @@ export default function LegalResearchTool() {
   const fetchResults = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/research/legal", {
+      const response = await fetch("https://litigate-backend.onrender.com/research/legal", {
         method: "POST",
         headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({

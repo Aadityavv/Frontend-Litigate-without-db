@@ -29,7 +29,6 @@ import {
 import { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { CustomModal } from "@/components/CustomModal";
-import BackButton from "@/components/BackButton";
 
 interface Case {
   id: number;
@@ -159,7 +158,6 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
 
   return (
     <div>
-      <BackButton label="Back" />
       <div className="px-4 sm:p-4 bg-gradient-to-b from-gray-50 to-white min-h-screen">
         <div className="max-w-7xl mx-auto space-y-6">
           <Toaster position="top-right" />

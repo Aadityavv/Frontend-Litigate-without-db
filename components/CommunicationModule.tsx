@@ -63,11 +63,11 @@ export default function CommunicationModule() {
     const fetchData = async () => {
       try {
         const [personalRes, groupRes, tasksRes, filesRes, notesRes] = await Promise.all([
-          fetch(`http://localhost:5000/communication/conversations/personal`, { headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : "" } }),
-          fetch(`http://localhost:5000/communication/conversations/group`, { headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : "" } }),
-          fetch(`http://localhost:5000/communication/tasks`, { headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : "" } }),
-          fetch(`http://localhost:5000/communication/files`, { headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : "" } }),
-          fetch(`http://localhost:5000/communication/notes`, { headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : "" } }),
+          fetch(`https://litigate-backend.onrender.com/communication/conversations/personal`, { headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : "" } }),
+          fetch(`https://litigate-backend.onrender.com/communication/conversations/group`, { headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : "" } }),
+          fetch(`https://litigate-backend.onrender.com/communication/tasks`, { headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : "" } }),
+          fetch(`https://litigate-backend.onrender.com/communication/files`, { headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : "" } }),
+          fetch(`https://litigate-backend.onrender.com/communication/notes`, { headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : "" } }),
         ]);
 
         setMessages((await personalRes.json()) || []);

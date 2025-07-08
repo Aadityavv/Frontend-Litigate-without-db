@@ -75,14 +75,14 @@ export default function AddNewEventModal({ onClose, onAddEvent, onEditEvent, exi
       let response, result;
       if (existingEvent && existingEvent._id) {
         // EDIT: PUT
-        response = await fetch(`http://localhost:5000/api/events/${existingEvent._id}`, {
+        response = await fetch(`https://litigate-backend.onrender.com/api/events/${existingEvent._id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...eventDetails, _id: existingEvent._id }),
         });
       } else {
         // CREATE: POST
-        response = await fetch("http://localhost:5000/api/events", {
+        response = await fetch("https://litigate-backend.onrender.com/api/events", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(eventDetails),

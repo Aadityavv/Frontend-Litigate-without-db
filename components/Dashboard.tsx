@@ -85,7 +85,7 @@ export default function Dashboard() {
     const fetchNotifications = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`http://localhost:5000/api/getNotifications/?lawyerId=${lawyerId}`, { headers: { ...getAuthHeaders() } });
+        const response = await fetch(`https://litigate-backend.onrender.com/api/getNotifications/?lawyerId=${lawyerId}`, { headers: { ...getAuthHeaders() } });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         setNotifications(data.notifications || []);
@@ -112,7 +112,7 @@ export default function Dashboard() {
           )).toISOString().split('T')[0]
         : '';
       const response = await fetch(
-        `http://localhost:5000/api/events?lawyerId=${lawyerId}&date=${dateStr}`,
+        `https://litigate-backend.onrender.com/api/events?lawyerId=${lawyerId}&date=${dateStr}`,
         { headers: { ...getAuthHeaders() } }
       );
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -134,7 +134,7 @@ export default function Dashboard() {
   const handleAddEvent = async (eventData: any) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/events`, {
+      const response = await fetch(`https://litigate-backend.onrender.com/api/events`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -166,7 +166,7 @@ export default function Dashboard() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/events/${eventToDelete}`,
+        `https://litigate-backend.onrender.com/api/events/${eventToDelete}`,
         {
           method: "DELETE",
           headers: { ...getAuthHeaders() },
@@ -196,7 +196,7 @@ export default function Dashboard() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/delete/case/?lawyerId=${lawyerId}&caseId=${caseToDelete}`,
+        `https://litigate-backend.onrender.com/delete/case/?lawyerId=${lawyerId}&caseId=${caseToDelete}`,
         {
           method: "DELETE",
           headers: { ...getAuthHeaders() },
@@ -233,7 +233,7 @@ export default function Dashboard() {
   const handleUpdateEvent = async (updatedEvent: any) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/events/${updatedEvent._id}`, {
+      const response = await fetch(`https://litigate-backend.onrender.com/api/events/${updatedEvent._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

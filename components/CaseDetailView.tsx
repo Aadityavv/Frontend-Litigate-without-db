@@ -78,7 +78,7 @@ export default function CaseDetailView({ caseId }: CaseDetailViewProps) {
       }
 
       try {
-        const response = await fetch(`http://localhost:5000/caseDetails/?lawyerId=${getLawyerId()}&caseId=${caseId}`, {
+        const response = await fetch(`https://litigate-backend.onrender.com/caseDetails/?lawyerId=${getLawyerId()}&caseId=${caseId}`, {
           headers: { Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : '' },
         });
         if (!response.ok) {

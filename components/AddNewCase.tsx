@@ -105,7 +105,7 @@ export default function AddNewCaseModal({ onClose, onAddCase }: AddNewCaseModalP
     console.log("Sending request with payload:", JSON.stringify(newCase, null, 2));
   
     try {
-      const response = await fetch(`http://localhost:5000/post/new/case`, {
+      const response = await fetch(`https://litigate-backend.onrender.com/post/new/case`, {
         method: "POST",
         headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
         body: JSON.stringify(newCase),
